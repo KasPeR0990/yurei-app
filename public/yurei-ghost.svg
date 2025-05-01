@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Ghost body -->
+  <path d="M40,40 L40,20 L60,20 L60,0 L180,0 L180,20 L200,20 L200,40 L220,40 L220,180 
+           L200,180 L200,200 L180,200 L180,220 L160,220 L160,240 L140,240 L140,220 
+           L100,220 L100,240 L80,240 L80,220 L60,220 L60,200 L40,200 L40,180 
+           L20,180 L20,40 L40,40 Z" 
+        fill="white" stroke="black" stroke-width="2"/>
+  <!-- Square eyes -->
+  <rect x="70" y="70" width="20" height="20" fill="black"/>
+  <rect x="150" y="70" width="20" height="20" fill="black"/>
+</svg>

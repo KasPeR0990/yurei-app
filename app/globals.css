@@ -1,26 +1,99 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Dark mode - Perplexity exact colors */
+    --background: 0 0% 3.9%;         /* #171717 */
+    --foreground: 0 0% 98%;       /* #FFFFFF */
+    --card: 0 0% 3.9%;             /* #262626 - sidebar */
+    --card-foreground: 0 0% 98%;  /* #FFFFFF */
+    --popover: 0 0% 3.9%;
+        --popover-foreground: 0 0% 98%;
+      --primary: 267 100% 70%;
+      --primary-foreground: 0 0% 98%;
+      --secondary: 0 0% 14.9%;
+      --secondary-foreground: 0 0% 98%;
+      --muted: 0 0% 14.9%;            /* #2D2D2D - hover */
+      --muted-foreground: 0 0% 63.9%;  /* #A1A1A1 */
+      --accent: 0 0% 14.9%;
+      --accent-foreground: 0 0% 98%;
+      --destructive: 0 62.8% 30.6%;
+      --destructive-foreground: 0 0% 98%;
+      --border: 0 0% 14.9%;
+      --input: 0 0% 14.9%;
+      --ring: 267 100% 70%;
+      --chart-1: 220 70% 50%;
+      --chart-2: 160 60% 45%;
+      --chart-3: 30 80% 55%;
+      --chart-4: 280 65% 60%;
+      --chart-5: 340 75% 55%;
+
+  
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply transition-colors duration-200;
+  }
+  body {
+    @apply bg-background text-foreground;
+    @apply transition-colors duration-300;
+  }
+}
+
+/* Tweet container adjustments */
+.react-tweet-theme {
+  --tweet-container-margin: 0;
+  --tweet-font-family: inherit;
+}
+
+/* Hide tweet footer actions */
+.react-tweet-theme .tweet-footer-actions {
+  display: none !important;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custo
+}
+
+/* St
+
+/* Dark mode specific adjustments */
+.tweet-wrapper[data-theme="dark"] [data-tweet-id] {
+  background-color: transparent !important;
+  color: #e5e5e5 !important;
+}
+
+
+/* 
+
+/* Custom styling for react-tweet component */
+
+/* Remove the white border from the reCAPTCHA container */
+div[style*="width: 304px"][style*="border"] {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Even more aggressive: target all divs with a white border */
+div[style*="border: 1px solid rgb(255, 255, 255)"] {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Fallback: target all children of the recaptcha widget */
+.recaptcha-container, .g-recaptcha, .g-recaptcha > div, .g-recaptcha iframe, .g-recaptcha > div > div {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
 }
