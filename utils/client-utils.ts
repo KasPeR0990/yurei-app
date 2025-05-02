@@ -1,16 +1,16 @@
 'use client';
 
 import { YoutubeIcon } from "lucide-react";
-import { XLogo, RedditLogo } from '@phosphor-icons/react';
+import { LinkedinLogo, RedditLogo } from '@phosphor-icons/react';
 
-export type SearchGroupId = "x" | "reddit" | "youtube";
+export type SearchGroupId = "linkedin" | "reddit" | "youtube";
 
 export const searchGroups = [
   {
-    id: "x" as const,
-    name: "X (Twitter)",
-    description: "Search X posts and content powered by Exa",
-    icon: XLogo,
+    id: "linkedin" as const,
+    name: "LinkedIn",
+    description: "Search LinkedIn posts and content powered by Exa",
+    icon: LinkedinLogo,
     show: true,
   },
   {

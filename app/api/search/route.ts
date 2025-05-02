@@ -15,6 +15,7 @@ import {
 import { youtube_v3 } from '@googleapis/youtube';
 import { createClient as createSupabaseServerClient } from '@/utils/supabase/server';
 import { ratelimit } from '@/utils/ratelimit';
+import util from 'util';
 
 // Custom provider for language models
 const Yurei = customProvider({
@@ -27,22 +28,23 @@ const Yurei = customProvider({
 export const maxDuration = 60;
 
 // Interfaces for search results
-interface XResult {
+interface LinkedInResult {
   id: string;
   url: string;
-  title: string;
+  title?: string;
   author?: string;
   publishedDate?: string;
-  text: string;
+  text?: string;
   highlights?: string[];
-  tweetId: string;
+  image?: string;
+  postId: string; // Fortfarande bra att ha
 }
 
 interface RedditResult {
   id: string;
   url: string;
-  title: string;
-  text: string;
+  title?: string;
+  text?: string;
   publishedDate?: string;
   highlights?: string[];
   postId: string;
@@ -150,10 +152,10 @@ export async function POST(req: Request) {
                 }
               },
             }),
-            x_search: tool({
-              description: 'Search X (formerly Twitter) posts.',
+            linkedin_search: tool({
+              description: 'Search LinkedIn posts.',
               parameters: z.object({
-                  query: z.string().describe('The search query, if a username is provided put in the query with @username'),
+                  query: z.string().describe("The search query."),
                   startDate: z.string().optional().describe('The start date for the search in YYYY-MM-DD format'),
                   endDate: z.string().optional().describe('The end date for the search in YYYY-MM-DD format'),
               }),
@@ -174,34 +176,37 @@ export async function POST(req: Request) {
                           numResults: 15,
                           text: true,
                           highlights: true,
-                          includeDomains: ['twitter.com', 'x.com'],
+                          includeDomains: ['linkedin.com'],
                           startPublishedDate: startDate,
                           endPublishedDate: endDate,
                       });
 
                     
-                      // Extract tweet ID from URL
-                      const extractTweetId = (url: string): string | null => {
-                          const match = url.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/);
-                          return match ? match[1] : null;
+                      // Extract post ID from URL
+                      const extractPostId = (url: string): string | null => {
+                        const regex = /linkedin\.com\/(?:feed\/update\/urn:li:activity|embed\/feed\/update\/urn:li:ugcPost):(\d{6,})|linkedin\.com\/posts\/[^\/]+-activity-(\d{6,})/;
+                        const match = url.match(regex);
+                        return match ? (match[1] || match[2]) : null;
                       };
 
                        // Process and filter results
-                       const processedResults = result.results.reduce<Array<XResult>>((acc, post) => {
-                        const tweetId = extractTweetId(post.url);
-                        if (tweetId) {
-                            acc.push({
-                                ...post,
-                                tweetId,
-                                title: post.title || '',
-                            });
+                       const processedResults = result.results.reduce<Array<LinkedInResult>>((acc, post) => {
+                        console.log("Raw post data from Exa AI:", util.inspect(post, { depth: null, colors: true }));
+                        const postId = extractPostId(post.url);
+                        if (postId) {
+                          acc.push({
+                            ...post,
+                            postId,
+                            title: post.title || '',
+                            author: post.author || 'LinkedIn User',
+                          });
                         }
                         return acc;
-                    }, []);
+                      }, []);
 
-                    return processedResults;
+                      return processedResults;
                 } catch (error) {
-                    console.error('X search error:', error);
+                    console.error('LinkedIn search error:', error);
                     throw error;
                 }
             },

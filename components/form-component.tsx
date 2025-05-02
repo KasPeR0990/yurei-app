@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+
 // /components/ui/form-component.tsx
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -137,8 +137,8 @@ const SelectionContent = ({ selectedGroup, onGroupSelect, status, onExpandChange
     }
   }, [isExpanded, onExpandChange, isMobile]);
 
-  // Filter to only include X, YouTube, and Reddit
-  const allowedGroups = ['x', 'youtube', 'reddit'];
+  // Filter to only include LinkedIn, YouTube, and Reddit
+  const allowedGroups = ['linkedin', 'youtube', 'reddit'];
 
   return (
     <motion.div

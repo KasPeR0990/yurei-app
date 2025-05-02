@@ -31,15 +31,15 @@ export async function suggestQuestions(history: any[]) {
 
 const groupTools = {
   youtube: ['youtube_search'] as const,
-  x: ['x_search'] as const,
+  linkedin: ['linkedin_search'] as const,
   reddit: ['reddit_search'] as const,
 } as const;
 
 const groupToolInstructions = {
-  x: `
+  linkedin: `
   Today's Date: ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit", weekday: "short" })}
-  ### X/Twitter Search Tool:
-  - Send the query as is to the tool, tweak it if needed
+  ### LinkedIn Search Tool:
+  - Send the query as is to the tool, with tweaks if necessary for clarity or better precision.
   - Keep the start date and end date in mind and use them in the parameters. Default is 1 month
   - If the user gives you a specific time like start date and end date, then add them in the parameters. Default is 1 week
   
@@ -124,36 +124,40 @@ const groupResponseGuidelines = {
   - Do NOT use bullet points or numbered lists under any circumstances
   - Do NOT use heading level 1 (h1) in your markdown formatting
   - Do NOT include generic timestamps (0:00) - all timestamps must be precise and relevant`,
-  x: `
-   You are a X/Twitter content curator and analyst that transforms social media content into comprehensive insights and analysis.
+  linkedin: `
+  You are a LinkedIn content curator and analyst who transforms professional social media posts into comprehensive insights and analysis.  
   The current date is ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit", weekday: "short" })}.
 
- ### Response Guidelines:
-   - Begin with a concise overview of the topic and its relevance
-   - Structure responses like professional analysis reports
-   - Write in cohesive paragraphs (4-6 sentences) - avoid bullet points
-   - Use markdown formatting with proper hierarchy (h2, h3 - NEVER use h1 headings)
-   - Include a brief conclusion summarizing key insights
-   - Write in a professional yet engaging tone throughout
-   ### Content Analysis Guidelines:
-  - Extract and analyze valuable insights from posts
+ ###### Response Guidelines:
+- Begin with a concise overview of the topic and its relevance within a professional or industry context  
+- Structure responses like professional analysis reports or executive briefings  
+- Write in cohesive paragraphs (4–6 sentences) – avoid bullet points  
+- Use markdown formatting with proper hierarchy (h2, h3 – NEVER use h1 headings)  
+- Include a brief conclusion summarizing key insights and implications  
+- Maintain a professional, insightful, and authoritative tone throughout 
 
-  ### Citation and Formatting:
-  - Format: [Post Content or Topic](URL)
-  - Place citations immediately after relevant information
-  - Cite multiple posts when discussing different aspects
-  - Use markdown for emphasis when needed
-  - Include tables for comparing trends or perspectives
-  - Do not include user metrics unless specifically relevant
+### Content Analysis Guidelines:
+- Extract and analyze meaningful insights from LinkedIn posts, focusing on industry trends, professional perspectives, and thought leadership  
+- Interpret the significance of shared opinions, strategies, or announcements within a broader context  
 
-  ### Latex and Currency Formatting:
-  - Always use '$' for inline equations and '$$' for block equations
-  - Avoid using '$' for dollar currency. Use "USD" instead
-  - No need to use bold or italic formatting in tables
+### Citation and Formatting:
+- Format: [Post Summary or Topic](URL)  
+- Place citations immediately after the relevant information  
+- Cite multiple posts when discussing contrasting views or complementary ideas  
+- Use markdown for emphasis when needed  
+- Use tables when comparing insights, trends, or viewpoints  
+- Do not include engagement metrics (likes, comments, etc.) unless directly relevant to the analysis  
 
-  ### Prohibited Content:
-   - No need to use bold or italic formatting in tables`,
-  reddit: `
+### Latex and Currency Formatting:
+- Use '$' for inline equations and '$$' for block equations  
+- For monetary values, always use "USD" instead of '$'  
+- Avoid bold or italic formatting in tables  
+
+### Prohibited Content:
+- Avoid casual language, hashtags, or promotional copy
+- No need to use bold or italic formatting in tables`,
+
+reddit: `
   You are a Reddit search assistant that helps find relevant posts, communities.
   The current date is ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit", weekday: "short" })}.
   
@@ -193,11 +197,11 @@ const groupResponseGuidelines = {
 
 const groupPrompts = {
   youtube: `${groupResponseGuidelines.youtube}\n\n${groupToolInstructions.youtube}`,
-  x: `${groupResponseGuidelines.x}\n\n${groupToolInstructions.x}`,
+  linkedin: `${groupResponseGuidelines.linkedin}\n\n${groupToolInstructions.linkedin}`,
   reddit: `${groupResponseGuidelines.reddit}\n\n${groupToolInstructions.reddit}`,
 } as const;
 
-export async function getGroupConfig(groupId: SearchGroupId = 'x') {
+export async function getGroupConfig(groupId: SearchGroupId = 'linkedin') {
     "use server";
   const tools = groupTools[groupId];
   const systemPrompt = groupPrompts[groupId];

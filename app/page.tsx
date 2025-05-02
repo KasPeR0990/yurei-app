@@ -6,9 +6,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { memo, useCallback, useMemo, useState, useEffect, Suspense, useRef } from "react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { YoutubeIcon, PlayIcon, LucideIcon, Moon, Sun, ArrowRight, X, Copy, Github, Plus } from "lucide-react";
+import { YoutubeIcon, PlayIcon, LucideIcon, Moon, Sun, ArrowRight, X, Copy, Github, Plus, ThumbsUp, MessageSquare, Share2 } from "lucide-react";
 import { InstallPrompt } from "@/components/install-prompt";
-import { XLogo, RedditLogo } from '@phosphor-icons/react';
+import { XLogo, RedditLogo, LinkedinLogo, UserCircle } from '@phosphor-icons/react';
 import FormComponent from "@/components/form-component";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useChat, UseChatOptions } from "@ai-sdk/react";
@@ -29,19 +29,19 @@ import Link from "next/link";
 import React from "react";
 import Latex from 'react-latex-next';
 import { BuyCoffee } from "@/components/buy-coffee"
+import { LinkedInEmbed } from 'react-social-media-embed';
 
-
-interface XResult {
+interface LinkedInResult {
   id: string;
   url: string;
-  title: string;
+  title?: string;
   author?: string;
   publishedDate?: string;
-  text: string;
+  text?: string;
   highlights?: string[];
-  tweetId: string;
+  image?: string;
+  postId: string;
 }
-
 interface RedditResult {
   id: string;
   url: string;
@@ -301,6 +301,110 @@ const YouTubeCard: React.FC<YouTubeCardProps> = ({ video, index }) => {
   );
 };
 
+
+const LinkedInCard: React.FC<{ post: LinkedInResult; index: number }> = ({ post, index }) => {
+  const formattedDate = post.publishedDate ? new Date(post.publishedDate).toLocaleDateString('en-US') : 'Unknown date';
+
+  const authorName = post.author && !/^\d+(\sfollowers)?$/i.test(post.author) ? post.author : 'LinkedIn User';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.1 }}
+      className="w-[280px] flex-shrink-0 relative rounded-md dark:bg-neutral-800 bg-white overflow-hidden shadow-md"
+      style={{ borderRadius: '7px' }}
+    >
+      <div className="p-4 flex items-start space-x-2">
+        <div className="relative w-8 h-8 rounded-full overflow-hidden bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center">
+          {post.author ? (
+            <img src="/placeholder-profile.png" alt={post.author} className="w-full h-full object-cover" onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }} />
+          ) : null}
+          <div className="absolute w-full h-full flex items-center justify-center">
+            <UserCircle size={32} weight="regular" />
+          </div>
+        </div>
+        <div className="flex flex-col text-sm">
+          <span className="font-semibold text-neutral-800 dark:text-neutral-100">{authorName}</span>
+          <div className="flex items-center space-x-1 text-xs text-neutral-500 dark:text-neutral-400">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={16}
+              height={16}
+              viewBox="0 0 16 16"
+              style={{ display: 'block' }}
+            >
+              <path
+                d="M8 1a7 7 0 107 7 7 7 0 00-7-7zM3 8a5 5 0 011-3l.55.55A1.5 1.5 0 015 6.62v1.07a.75.75 0 00.22.53l.56.56a.75.75 0 00.53.22H7v.69a.75.75 0 00.22.53l.56.56a.75.75 0 01.22.53V13a5 5 0 01-5-5zm6.24 4.83l2-2.46a.75.75 0 00.09-.8l-.58-1.16A.76.76 0 0010 8H7v-.19a.51.51 0 01.28-.45l.38-.19a.74.74 0 01.68 0L9 7.5l.38-.7a1 1 0 00.12-.48v-.85a.78.78 0 01.21-.53l1.07-1.09a5 5 0 01-1.54 9z"
+                fill="white"
+              />
+            </svg>
+            <span>{formattedDate}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ... rest of the component remains the same ... */}
+
+      <div className="p-4">
+        <HoverCard>
+          <HoverCardTrigger asChild>
+            <Link
+              href={post.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+            >
+              <p className="text-sm text-neutral-800 dark:text-neutral-100 mb-2 line-clamp-4">
+                {post.text || post.title || 'LinkedIn post'}
+              </p>
+            </Link>
+          </HoverCardTrigger>
+          <HoverCardContent className="overflow-hidden" style={{ border: '1px solid #171717' }}>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-3">
+              {post.text || post.title || 'LinkedIn post'}
+            </p>
+          </HoverCardContent>
+        </HoverCard>
+
+        {post.image && (
+          <div className="mt-3 rounded-md overflow-hidden">
+            <img src={post.image} alt="Post image" className="w-full h-auto" />
+          </div>
+        )}
+
+        {post.highlights && post.highlights.length > 0 && (
+          <div className="mt-3">
+            {post.highlights.map((highlight, i) => (
+              <span key={i} className="inline-block bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 rounded px-2 py-0.5 mr-1 mb-1 text-xs">
+                {highlight}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-3 flex items-center justify-start space-x-4 text-neutral-600 dark:text-neutral-400 text-sm">
+          <button className="flex items-center space-x-1">
+            <ThumbsUp size={20} className="lucide lucide-thumbs-up" />
+            <span>Like</span>
+          </button>
+          <button className="flex items-center space-x-1">
+            <MessageSquare size={20} className="lucide lucide-message-square" />
+            <span>Comment</span>
+          </button>
+          <button className="flex items-center space-x-1">
+            <Share2 size={20} className="lucide lucide-share" />
+            <span>Share</span>
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+
 const RedditCard: React.FC<{ post: RedditResult; index: number }> = ({ post, index }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -332,13 +436,10 @@ const RedditCard: React.FC<{ post: RedditResult; index: number }> = ({ post, ind
               {post.title || "Reddit Post"}
             </Link>
           </HoverCardTrigger>
-          <HoverCardContent className="w-80 border-[#171717] ">
-            <div className="space-y-2">
-              <h4 className="text-sm font-semibold">{post.title}</h4>
-              <p className="text-sm">
-                {post.text.length > 120 ? post.text.slice(0, 120) + '…' : post.text}
-              </p>
-            </div>
+          <HoverCardContent className="overflow-hidden" style={{ border: '1px solid #171717' }}>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-3">
+              {post.text || post.title || 'Reddit post'}
+            </p>
           </HoverCardContent>
         </HoverCard>
         {/* Breadtext under headline */}
@@ -359,7 +460,7 @@ const HomeContent = () => {
     query: query || q,
   }), [query, q]);
 
-  const [selectedGroup, setSelectedGroup] = useState<SearchGroupId>('x');
+  const [selectedGroup, setSelectedGroup] = useState<SearchGroupId>('linkedin');
   const initializedRef = useRef(false);
   const lastSubmittedQueryRef = useRef(initialState.query);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -1100,40 +1201,40 @@ const ToolInvocationListView = memo(
         const args = JSON.parse(JSON.stringify(toolInvocation.args));
         const result = "result" in toolInvocation ? JSON.parse(JSON.stringify(toolInvocation.result)) : null;
 
-        if (toolInvocation.toolName === "x_search") {
+        if (toolInvocation.toolName === "linkedin_search") {
           if (!result) {
             return <SearchLoadingState
-              icon={XLogo}
-              text="Searching X for latest tweets..."
-              color="gray"
+              icon={LinkedinLogo}
+              text="Searching LinkedIn for latest posts..."
+              color="blue"
             />;
           }
 
           const PREVIEW_COUNT = 2;
-          const FullTweetList = memo(() => (
+          const FullLinkedInList = memo(() => (
             <div className="grid gap-4 p-4 sm:max-w-[500px]">
-              {result.map((post: XResult, idx: number) => (
-                  <div
-                    key={post.id}
-                    className="tweet-container"
-                  >
-                    <Tweet id={post.tweetId} />
-                  </div>
-                ))}
-              </div>
+              {result.map((post: LinkedInResult, idx: number) => (
+                <div
+                  key={post.id + '-' + idx}
+                  className="linkedin-post-container"
+                >
+                  <LinkedInCard post={post} index={idx} />
+                </div>
+              ))}
+            </div>
           ));
-          FullTweetList.displayName = "FullTweetList";
+          FullLinkedInList.displayName = "FullLinkedInList";
 
           return (
             <Card className="w-full my-4 overflow-hidden shadow-none">
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 rounded-full dark:bg-neutral-900 flex items-center justify-center">
-                    <XLogo className="h-4 w-4" />
+                    <LinkedinLogo className="h-4 w-4" />
                   </div>
                   <div>
-                    <CardTitle>Latest from X</CardTitle>
-                    <p className="text-sm text-neutral-500 dark:text-neutral-400">{result.length} tweets found</p>
+                    <CardTitle>Latest from LinkedIn</CardTitle>
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400">{result.length} posts found</p>
                   </div>
                 </div>
               </CardHeader>
@@ -1142,12 +1243,12 @@ const ToolInvocationListView = memo(
                   <div className="flex justify-center overflow-hidden">
                     <div className="w-[calc(280px*3+1rem*2)] mx-auto">
                       <div className="flex overflow-x-auto gap-4 p-3" style={{ scrollbarWidth: 'thin' }}>
-                        {result.slice(0, PREVIEW_COUNT).map((post: XResult, idx: number) => (
+                        {result.slice(0, PREVIEW_COUNT).map((post: LinkedInResult, idx: number) => (
                           <div
-                            key={post.tweetId}
-                            className="w-[280px] flex-none tweet-container"
+                            key={post.postId}
+                            className="w-[280px] flex-none linkedin-post-container"
                           >
-                            <Tweet id={post.tweetId} />
+                            <LinkedInCard post={post} index={idx} />
                           </div>
                         ))}
                       </div>
@@ -1160,15 +1261,15 @@ const ToolInvocationListView = memo(
                     <Sheet>
                       <SheetTrigger asChild>
                         <Button variant="outline" className="gap-2 dark:bg-black rounded-full border-[#171717]">
-                          <XLogo className="h-4 w-4" />   
-                          Show all {result.length} tweets
+                          <LinkedinLogo className="h-4 w-4" />   
+                          Show all {result.length} posts
                         </Button>
                       </SheetTrigger>
                       <SheetContent side="right" className="w-[400px] sm:w-[600px] overflow-y-auto !p-0 !z-[70]">
                         <SheetHeader className="!mt-5 !font-sans">
-                          <SheetTitle className="text-center">All Tweets</SheetTitle>
+                          <SheetTitle className="text-center">All LinkedIn Posts</SheetTitle>
                         </SheetHeader>
-                        <FullTweetList />
+                        <FullLinkedInList />
                       </SheetContent>
                     </Sheet>
                   </div>
@@ -1176,16 +1277,16 @@ const ToolInvocationListView = memo(
                     <Drawer>
                       <DrawerTrigger asChild>
                         <Button variant="outline" className="gap-2 bg-white dark:bg-black">
-                          <XLogo className="h-4 w-4" />
-                          Show all {result.length} tweets
+                          <LinkedinLogo className="h-4 w-4" />
+                          Show all {result.length} posts
                         </Button>
                       </DrawerTrigger>
                       <DrawerContent className="max-h-[85vh] font-sans">
                         <DrawerHeader>
-                          <DrawerTitle>All Tweets</DrawerTitle>
+                          <DrawerTitle>All LinkedIn Posts</DrawerTitle>
                         </DrawerHeader>
                         <div className="overflow-y-auto">
-                          <FullTweetList />
+                          <FullLinkedInList />
                         </div>
                       </DrawerContent>
                     </Drawer>
@@ -1270,14 +1371,14 @@ const ToolInvocationListView = memo(
                 }
               >
                 {postsToShow.map((post: RedditResult, idx: number) => (
-                  <div
-                    key={post.id + '-' + idx}
-                    className="reddit-post-container"
-                  >
-                    <RedditCard post={post} index={idx} />
-                  </div>
-                ))}
-              </div>
+                <div
+                  key={post.id + '-' + idx}
+                  className="reddit-post-container"
+                >
+                  <RedditCard post={post} index={idx} />
+                </div>
+              ))}
+            </div>
             );
           });
           FullRedditList.displayName = "FullRedditList";

@@ -91,9 +91,5 @@ div[style*="border: 1px solid rgb(255, 255, 255)"] {
   background: transparent !important;
 }
 
-/* Fallback: target all children of the recaptcha widget */
-.recaptcha-container, .g-recaptcha, .g-recaptcha > div, .g-recaptcha iframe, .g-recaptcha > div > div {
-  border: none !important;
-  box-shadow: none !important;
-  background: transparent !important;
-}
+
+
