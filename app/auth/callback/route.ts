@@ -10,18 +10,14 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}?error=No code provided`);
   }
 
-  try {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const response = NextResponse.redirect(origin);
+  const supabase = await createClient();
 
-    if (error) {
-      console.error('Session error:', error);
-      throw error;
-    }
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-    return NextResponse.redirect(origin);
-  } catch (error) {
-    console.error('Auth error:', error);
+  if (error) {
     return NextResponse.redirect(`${origin}?error=Authentication failed`);
   }
+
+  return response;
 }

@@ -1,12 +1,9 @@
-import { createServerClient } from "@supabase/ssr";
-import { NextResponse } from "next/server";
-import { type NextRequest } from "next/server";
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
-  const res = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+export async function updateSession(request: NextRequest) {
+  let res = NextResponse.next({
+    request,
   });
 
   const supabase = createServerClient(
@@ -14,19 +11,37 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+        getAll() {
+          return request.cookies.getAll();
         },
-        set(name: string, value: string, options: any) {
-          res.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: any) {
-          res.cookies.set({ name, value: '', ...options });
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
+          res = NextResponse.next({
+            request,
+          });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            res.cookies.set(name, value, options)
+          );
         },
       },
     }
   );
 
-  await supabase.auth.getSession();
+  // Always call getUser to refresh session cookies
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Only protect /api routes (return 401 if not authed)
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    if (!user) {
+      return NextResponse.json({
+        error: 'Unauthorized access',
+        message: 'Authentication required'
+      }, { status: 401 });
+    }
+  }
+
+  // Do NOT redirect for non-API routes; let your app render AuthCard as needed
   return res;
 }
