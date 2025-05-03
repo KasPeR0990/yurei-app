@@ -1,6 +1,5 @@
-import ClientAuthGate from "@/components/ClientAuthGate";
+import ClientAuth from "@/app/auth/ClientAuth";
 import { createClient } from "@/utils/supabase/server";
-import AuthCard from "@/app/auth/authcard/auth-card";
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Providers } from "@/components/providers";
 import type { Metadata } from "next";
@@ -36,9 +35,9 @@ export default async function CombinedLayout({
         <NuqsAdapter>
         <Providers>
           <main>
-            <ClientAuthGate initialUser={user}>
+            <ClientAuth initialUser={user}>
               {children}
-            </ClientAuthGate>
+            </ClientAuth>
           </main>
         </Providers>
         </NuqsAdapter>
