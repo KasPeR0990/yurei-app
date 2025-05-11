@@ -39,10 +39,11 @@ const groupToolInstructions = {
   linkedin: `
   Today's Date: ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit", weekday: "short" })}
   ### LinkedIn Search Tool:
-  - Send the query as is to the tool, with tweaks if necessary for clarity or better precision.
+  - Send the query as is to the tool, with tweaks if necessary for clarity or better precision of what the user is asking for. 
   - Keep the start date and end date in mind and use them in the parameters. Default is 1 month
   - If the user gives you a specific time like start date and end date, then add them in the parameters. Default is 1 week
-  
+  - Do not mention post metadata (title) in your response.
+   
   ### datetime tool:
   - When you get the datetime data, talk about the date and time in the user's timezone
   - Do not always talk about the date and time, only talk about it when the user asks for it.
@@ -69,9 +70,9 @@ const groupToolInstructions = {
   
   ### Reddit Search Tool:
   - Always prioritize the most relevant and recent posts, even if some older posts are included in the results.
-  - If the user asks for "latest" or "recent" posts, focus your synthesis on posts from the last 1-2 years, but do not exclude older posts if they are highly relevant.
-  - If the query is very broad, try to identify the most useful and up-to-date discussions.
-  - Ignore post upvotes and karma unless specifically asked.
+  - If the user asks for "latest" or "recent" posts, focus your synthesis on posts from the last year, exclude older posts as they have less relevance in almost all cases.
+  - If the query is very broad, try to identify the most useful and up-to-date discussions. Tweak if necessary for clarity or better precision of what the user is asking for.
+  - Ignore karma unless specifically asked.
   - Summarize and synthesize content based on practical relevance and recency.
   - Do not mention post metadata (title, author, date) in your response.
   

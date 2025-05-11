@@ -1,6 +1,7 @@
 'use client';
 
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import { track } from '@vercel/analytics';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { memo, useCallback, useMemo, useState, useEffect, Suspense, useRef } from "react";
@@ -479,8 +480,15 @@ const HomeContent = () => {
       api: '/api/search',
       experimental_throttle: 1000,
       body: { group: selectedGroup },
-      onFinish: (message, { finishReason }) => {
-        console.log('[finish reason]:', finishReason);
+      onFinish: (message) => {
+        // Track analytics event when user search is completed
+        if (message.role === 'user') {
+          track('search', {
+            query: message.content,
+            group: selectedGroup,
+           
+          });
+        }
       },
       onError: (error) => {
         console.log('Chat error:', error);
@@ -934,6 +942,8 @@ const HomeContent = () => {
 
   const handleSearchSubmit = useCallback(
     (query: string, group: SearchGroupId) => {
+      // Track custom search event
+      track('search', { query, group });
       setSelectedGroup(group);
       lastSubmittedQueryRef.current = query;
       append({ content: query, role: 'user' });

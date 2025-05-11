@@ -1,4 +1,5 @@
 import ClientAuth from "@/app/auth/ClientAuth";
+import { Analytics } from '@vercel/analytics/react';
 import { createClient } from "@/utils/supabase/server";
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Providers } from "@/components/providers";
@@ -41,7 +42,8 @@ export default async function CombinedLayout({
           </main>
         </Providers>
         </NuqsAdapter>
-      </body>
+          <Analytics />
+        </body>
     </html>
   );
 }

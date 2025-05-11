@@ -36,6 +36,8 @@ interface LinkedInResult {
   publishedDate?: string;
   text?: string;
   highlights?: string[];
+  highlightScores?: number[];
+  highlightScore?: number;
   image?: string;
   postId: string; // Fortfarande bra att ha
 }
@@ -71,6 +73,8 @@ interface VideoResult {
   likes?: string;
   summary?: string;
 }
+
+const MIN_HIGHLIGHT_SCORE = 0.25;
 
 // Helper functions
 const extractDomain = (url: string): string => {
@@ -155,56 +159,78 @@ export async function POST(req: Request) {
             linkedin_search: tool({
               description: 'Search LinkedIn posts.',
               parameters: z.object({
-                  query: z.string().describe("The search query."),
+                  query: z.string().describe("The search query, use /in/username for searching a specific user / their posts."),
                   startDate: z.string().optional().describe('The start date for the search in YYYY-MM-DD format'),
                   endDate: z.string().optional().describe('The end date for the search in YYYY-MM-DD format'),
+                  minHighlightScore: z.number().optional().describe('The minimum highlight score for posts'),
               }),
               execute: async ({
                   query,
                   startDate,
                   endDate,
+                  minHighlightScore,
               }: {
                   query: string;
                   startDate?: string;
                   endDate?: string;
+                  minHighlightScore?: number; 
               }) => {
                   try {
                     const exa = new Exa(process.env.EXA_API_KEY as string)                    
                     
                       const result = await exa.searchAndContents(query, {
-                          type: 'auto',
-                          numResults: 15,
+                          type: 'keyword',
+                          numResults: 20,
                           text: true,
                           highlights: true,
                           includeDomains: ['linkedin.com'],
                           startPublishedDate: startDate,
                           endPublishedDate: endDate,
-                      });
-
-                    
+                          highlightScore: true,
+                         
+                        });            
                       // Extract post ID from URL
                       const extractPostId = (url: string): string | null => {
                         const regex = /linkedin\.com\/(?:feed\/update\/urn:li:activity|embed\/feed\/update\/urn:li:ugcPost):(\d{6,})|linkedin\.com\/posts\/[^\/]+-activity-(\d{6,})/;
                         const match = url.match(regex);
                         return match ? (match[1] || match[2]) : null;
                       };
+                      
 
+                      const filterScore = (results: LinkedInResult[], minScore?: number) => {
+                        if (minScore === undefined) {
+                            return results;
+                        }
+                        return results.filter(post => {
+                            let score: number | undefined = undefined;
+                            if (post.highlightScores?.length) {
+                                score = Math.max(...post.highlightScores);
+                            } else if (post.highlightScore !== undefined) {
+                                score = post.highlightScore;
+                            }
+                            return score !== undefined && score >= minScore;
+                        });
+                    };
                        // Process and filter results
                        const processedResults = result.results.reduce<Array<LinkedInResult>>((acc, post) => {
                         console.log("Raw post data from Exa AI:", util.inspect(post, { depth: null, colors: true }));
                         const postId = extractPostId(post.url);
                         if (postId) {
-                          acc.push({
-                            ...post,
-                            postId,
-                            title: post.title || '',
-                            author: post.author || 'LinkedIn User',
-                          });
+                            acc.push({
+                                ...post, // Sprider alla egenskaper från det ursprungliga post-objektet
+                                postId,
+                                title: post.title || '',
+                                author: post.author || 'LinkedIn User',
+                                highlightScore: (post as any).highlightScore,
+                                highlightScores: post.highlightScores,
+                            } as LinkedInResult);
                         }
                         return acc;
-                      }, []);
+                    }, []);
 
-                      return processedResults;
+                    const filteredResults = filterScore(processedResults, MIN_HIGHLIGHT_SCORE);
+                    return filteredResults;
+
                 } catch (error) {
                     console.error('LinkedIn search error:', error);
                     throw error;
