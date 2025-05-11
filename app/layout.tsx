@@ -19,6 +19,19 @@ export const metadata: Metadata = {
   icons: {
     icon: "/yurei-ghost.svg",
   },
+  keywords: [
+    "content ideas",
+    "social media search",
+    "LinkedIn search",
+    "Reddit search",
+    "YouTube search",
+    "AI content discovery",
+    "social trends",
+    "inspiration",
+    "marketing research",
+    "topic analysis",
+    "Yurei app"
+  ]
 };
 
 
