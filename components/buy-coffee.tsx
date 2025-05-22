@@ -53,7 +53,7 @@ export const BuyCoffee = ({ setShowBuyCoffee }: { setShowBuyCoffee: (show: boole
       <div className="space-y-4 w-full">
         {/* Buy Me a Coffee Button */}
         <div className="flex justify-center">
-          <Link href="">
+          <Link href="https://buymeacoffee.com/kasper0990">
             <Button className="px-6 h-9 text-sm bg-white hover:bg-neutral-100 text-neutral-900 rounded-full font-normal transition-colors">
               <Coffee className="w-4 h-4 mr-2" />
               Buy me a coffee

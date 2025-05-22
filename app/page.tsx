@@ -31,6 +31,7 @@ import React from "react";
 import Latex from 'react-latex-next';
 import { BuyCoffee } from "@/components/buy-coffee"
 import { LinkedInEmbed } from 'react-social-media-embed';
+import { Coffee } from "lucide-react";
 
 interface LinkedInResult {
   id: string;
@@ -493,7 +494,7 @@ const HomeContent = () => {
       onError: (error) => {
         console.log('Chat error:', error);
         // Check for status on error if present, or fallback to message string
-        if (
+        if (  
           (typeof (error as any).status === "number" && (error as any).status === 429) ||
           error?.message?.includes("429")
         ) {
@@ -890,6 +891,16 @@ const HomeContent = () => {
         </div>
 
         <div className='flex items-center space-x-4'>
+          <a
+            href="https://buymeacoffee.com/kasper0990"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-1.5 text-sm font-medium px-3 py-1.5 rounded-xl bg-neutral-1000 hover:bg-neutral-700 text-neutral-100 transition-colors"
+            aria-label="Buy Me a Coffee"
+          >
+            <Coffee className="h-4 w-4" />
+            <span>Buy me a coffee</span>
+          </a>
           <a
             href="https://github.com/Kasper0990"
             target="_blank"
