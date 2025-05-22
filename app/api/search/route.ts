@@ -50,7 +50,6 @@ interface RedditResult {
   publishedDate?: string;
   highlights?: string[];
   postId: string;
-  community: string; // new field
 }
 
 interface VideoDetails {
@@ -449,7 +448,7 @@ export async function POST(req: Request) {
                         publishedDate: post.publishedDate || undefined,
                         highlights: post.highlights || undefined,
                         postId: redditId,
-                        community,
+                     
                       });
                     }
                     return acc;

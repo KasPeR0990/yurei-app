@@ -32,6 +32,7 @@ import Latex from 'react-latex-next';
 import { BuyCoffee } from "@/components/buy-coffee"
 import { LinkedInEmbed } from 'react-social-media-embed';
 import { Coffee } from "lucide-react";
+import { RedditSearch } from "@/components/reddit-search";
 
 interface LinkedInResult {
   id: string;
@@ -407,53 +408,53 @@ const LinkedInCard: React.FC<{ post: LinkedInResult; index: number }> = ({ post,
 };
 
 
-const RedditCard: React.FC<{ post: RedditResult; index: number }> = ({ post, index }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3, delay: index * 0.1 }}
-    className="w-[280px] h-[200px] flex-shrink-0 relative rounded-xl dark:bg-neutral-800/50 overflow-hidden"
-  >
-    {/* Reddit community above content */}
-    <div className="absolute top-4 left-4 z-0 flex flex-col items-start gap-0.5">
-      {post.community ? (
-        <span className="text-[12px] text-neutral-500 dark:text-neutral-400 font-geist-mono">
-          r/{post.community}
-        </span>
-      ) : (
-        <span className="text-[12px] text-neutral-500 dark:text-neutral-400 font-geist-mono">r/unknown</span>
-      )}
-    </div>
+// const RedditCard: React.FC<{ post: RedditResult; index: number }> = ({ post, index }) => (
+//   <motion.div
+//     initial={{ opacity: 0, y: 20 }}
+//     animate={{ opacity: 1, y: 0 }}
+//     transition={{ duration: 0.3, delay: index * 0.1 }}
+//     className="w-[280px] h-[200px] flex-shrink-0 relative rounded-xl dark:bg-neutral-800/50 overflow-hidden"
+//   >
+//     {/* Reddit community above content */}
+//     <div className="absolute top-4 left-4 z-0 flex flex-col items-start gap-0.5">
+//       {post.community ? (
+//         <span className="text-[12px] text-neutral-500 dark:text-neutral-400 font-geist-mono">
+//           r/{post.community}
+//         </span>
+//       ) : (
+//         <span className="text-[12px] text-neutral-500 dark:text-neutral-400 font-geist-mono">r/unknown</span>
+//       )}
+//     </div>
 
-    <div className="p-4 pt-16 flex flex-col gap-2">
-      <div className="space-y-2">
-        <HoverCard>
-          <HoverCardTrigger asChild>
-            <Link
-              href={post.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-base font-semibold line-clamp-2 hover:text-orange-500 transition-colors dark:text-neutral-100 font-geist-mono"
-            >
-              {post.title || "Reddit Post"}
-            </Link>
-          </HoverCardTrigger>
-          <HoverCardContent className="overflow-hidden" style={{ border: '1px solid #171717' }}>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-3">
-              {post.text || post.title || 'Reddit post'}
-            </p>
-          </HoverCardContent>
-        </HoverCard>
-        {/* Breadtext under headline */}
-        {post.text && post.text.trim() !== post.title.trim() && (
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-2 font-geist-mono">
-            {post.text.length > 100 ? post.text.slice(0, 100) + '…' : post.text}
-          </p>
-        )}
-      </div>
-    </div>
-  </motion.div>
-);
+//     <div className="p-4 pt-16 flex flex-col gap-2">
+//       <div className="space-y-2">
+//         <HoverCard>
+//           <HoverCardTrigger asChild>
+//             <Link
+//               href={post.url}
+//               target="_blank"
+//               rel="noopener noreferrer"
+//               className="text-base font-semibold line-clamp-2 hover:text-orange-500 transition-colors dark:text-neutral-100 font-geist-mono"
+//             >
+//               {post.title || "Reddit Post"}
+//             </Link>
+//           </HoverCardTrigger>
+//           <HoverCardContent className="overflow-hidden" style={{ border: '1px solid #171717' }}>
+//             <p className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-3">
+//               {post.text || post.title || 'Reddit post'}
+//             </p>
+//           </HoverCardContent>
+//         </HoverCard>
+//         {/* Breadtext under headline */}
+//         {post.text && post.text.trim() !== post.title.trim() && (
+//           <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-2 font-geist-mono">
+//             {post.text.length > 100 ? post.text.slice(0, 100) + '…' : post.text}
+//           </p>
+//         )}
+//       </div>
+//     </div>
+//   </motion.div>
+// );
 
 const HomeContent = () => {
   const [query] = useQueryState('query', parseAsString.withDefault(''));
@@ -462,7 +463,7 @@ const HomeContent = () => {
     query: query || q,
   }), [query, q]);
 
-  const [selectedGroup, setSelectedGroup] = useState<SearchGroupId>('linkedin');
+  const [selectedGroup, setSelectedGroup] = useState<SearchGroupId>('youtube');
   const initializedRef = useRef(false);
   const lastSubmittedQueryRef = useRef(initialState.query);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -1370,110 +1371,115 @@ const ToolInvocationListView = memo(
             </Accordion>
           );
         }
-
-        if (toolInvocation.toolName === "reddit_search") {
+        if (toolInvocation.toolName === 'reddit_search') {
           if (!result) {
-            return <SearchLoadingState
-              icon={RedditLogo}
-              text="Searching Reddit"
-              color="orange"
-            />;
+              return <SearchLoadingState
+                  icon={RedditLogo}
+                  text="Searching Reddit..."
+                  color="orange"
+              />;
           }
-          const PREVIEW_COUNT = 4;
+          
+          return <RedditSearch result={result} args={args} />;
+      }
 
-          const FullRedditList = memo(({ mode = "preview" }: { mode?: "preview" | "full" }) => {
-            const postsToShow = mode === "preview" ? result.slice(0, PREVIEW_COUNT) : result;
-            return (
-              <div
-                className={
-                  mode === "preview"
-                    ? "grid grid-cols-2 grid-rows-2 gap-4 p-4 max-w-[600px] mx-auto"
-                    : "flex flex-col gap-4 p-4 max-w-[600px] mx-auto"
-                }
-              >
-                {postsToShow.map((post: RedditResult, idx: number) => (
-                <div
-                  key={post.id + '-' + idx}
-                  className="reddit-post-container"
-                >
-                  <RedditCard post={post} index={idx} />
-                </div>
-              ))}
-            </div>
-            );
-          });
-          FullRedditList.displayName = "FullRedditList";
+      return null;
+  },
+  [message]
+);
+    //       const FullRedditList = memo(({ mode = "preview" }: { mode?: "preview" | "full" }) => {
+    //         const postsToShow = mode === "preview" ? result.slice(0, PREVIEW_COUNT) : result;
+    //         return (
+    //           <div
+    //             className={
+    //               mode === "preview"
+    //                 ? "grid grid-cols-2 grid-rows-2 gap-4 p-4 max-w-[600px] mx-auto"
+    //                 : "flex flex-col gap-4 p-4 max-w-[600px] mx-auto"
+    //             }
+    //           >
+    //             {postsToShow.map((post: RedditResult, idx: number) => (
+    //             <div
+    //               key={post.id + '-' + idx}
+    //               className="reddit-post-container"
+    //             >
+    //               <RedditCard post={post} index={idx} />
+    //             </div>
+    //           ))}
+    //         </div>
+    //         );
+    //       });
+    //       FullRedditList.displayName = "FullRedditList";
 
-          return (
-            <Card className="w-full my-4 overflow-hidden shadow-none">
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className=" rounded-full  flex items-center justify-center">
-                    <Image
-                      src="/Reddit-Logomark-Color-Logo.wine.svg"
-                      alt="Reddit Logo"
-                      width={70}
-                      height={70}
-                      className="object-contain rounded-full bg-transparent"
-                      priority
-                    />
-                  </div>
-                  <div>
-                    <CardTitle>Latest from Reddit</CardTitle>
-                    <p className="text-sm text-neutral-500 dark:text-neutral-400">{result.length} posts found</p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="relative">
-                <div className="px-4 pb-2 h-72">
-                  <FullRedditList mode="preview" />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-black pointer-events-none" />
-                <div className="absolute bottom-0 inset-x-0 flex items-center justify-center pb-4 pt-20 bg-gradient-to-t from-white dark:from-black to-transparent">
-                  <div className="hidden sm:block">
-                    <Sheet>
-                      <SheetTrigger asChild>
-                        <Button variant="outline" className="gap-2 dark:bg-black rounded-full border-[#171717]">
-                          <RedditLogo className="h-4 w-4" />
-                          Show all {result.length} posts
-                        </Button>
-                      </SheetTrigger>
-                      <SheetContent side="right" className="w-[400px] sm:w-[600px] overflow-y-auto !p-0 !z-[70]">
-                        <SheetHeader className="!mt-5 !font-sans">
-                          <SheetTitle className="text-center">All Reddit Posts</SheetTitle>
-                        </SheetHeader>
-                        <FullRedditList mode="full" />
-                      </SheetContent>
-                    </Sheet>
-                  </div>
-                  <div className="block sm:hidden">
-                    <Drawer>
-                      <DrawerTrigger asChild>
-                        <Button variant="outline" className="gap-2 bg-white dark:bg-black">
-                          <RedditLogo className="h-4 w-4" />
-                          Show all {result.length} posts
-                        </Button>
-                      </DrawerTrigger>
-                      <DrawerContent className="max-h-[85vh] font-sans">
-                        <DrawerHeader>
-                          <DrawerTitle>All Reddit Posts</DrawerTitle>
-                        </DrawerHeader>
-                        <div className="overflow-y-auto">
-                          <FullRedditList mode="full" />
-                        </div>
-                      </DrawerContent>
-                    </Drawer>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        }
+    //       return (
+    //         <Card className="w-full my-4 overflow-hidden shadow-none">
+    //           <CardHeader className="pb-2 flex flex-row items-center justify-between">
+    //             <div className="flex items-center gap-2">
+    //               <div className=" rounded-full  flex items-center justify-center">
+    //                 <Image
+    //                   src="/Reddit-Logomark-Color-Logo.wine.svg"
+    //                   alt="Reddit Logo"
+    //                   width={70}
+    //                   height={70}
+    //                   className="object-contain rounded-full bg-transparent"
+    //                   priority
+    //                 />
+    //               </div>
+    //               <div>
+    //                 <CardTitle>Latest from Reddit</CardTitle>
+    //                 <p className="text-sm text-neutral-500 dark:text-neutral-400">{result.length} posts found</p>
+    //               </div>
+    //             </div>
+    //           </CardHeader>
+    //           <CardContent className="relative">
+    //             <div className="px-4 pb-2 h-72">
+    //               <FullRedditList mode="preview" />
+    //             </div>
+    //             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-black pointer-events-none" />
+    //             <div className="absolute bottom-0 inset-x-0 flex items-center justify-center pb-4 pt-20 bg-gradient-to-t from-white dark:from-black to-transparent">
+    //               <div className="hidden sm:block">
+    //                 <Sheet>
+    //                   <SheetTrigger asChild>
+    //                     <Button variant="outline" className="gap-2 dark:bg-black rounded-full border-[#171717]">
+    //                       <RedditLogo className="h-4 w-4" />
+    //                       Show all {result.length} posts
+    //                     </Button>
+    //                   </SheetTrigger>
+    //                   <SheetContent side="right" className="w-[400px] sm:w-[600px] overflow-y-auto !p-0 !z-[70]">
+    //                     <SheetHeader className="!mt-5 !font-sans">
+    //                       <SheetTitle className="text-center">All Reddit Posts</SheetTitle>
+    //                     </SheetHeader>
+    //                     <FullRedditList mode="full" />
+    //                   </SheetContent>
+    //                 </Sheet>
+    //               </div>
+    //               <div className="block sm:hidden">
+    //                 <Drawer>
+    //                   <DrawerTrigger asChild>
+    //                     <Button variant="outline" className="gap-2 bg-white dark:bg-black">
+    //                       <RedditLogo className="h-4 w-4" />
+    //                       Show all {result.length} posts
+    //                     </Button>
+    //                   </DrawerTrigger>
+    //                   <DrawerContent className="max-h-[85vh] font-sans">
+    //                     <DrawerHeader>
+    //                       <DrawerTitle>All Reddit Posts</DrawerTitle>
+    //                     </DrawerHeader>
+    //                     <div className="overflow-y-auto">
+    //                       <FullRedditList mode="full" />
+    //                     </div>
+    //                   </DrawerContent>
+    //                 </Drawer>
+    //               </div>
+    //             </div>
+    //           </CardContent>
+    //         </Card>
+    //       );
+    //     }
 
-        return null;
-      },
-      []
-    );
+    //     return null;
+    //   },
+    //   []
+    // );
 
     return (
       <>

@@ -7,6 +7,13 @@ export type SearchGroupId = "linkedin" | "reddit" | "youtube";
 
 export const searchGroups = [
   {
+    id: "youtube" as const,
+    name: "YouTube",
+    description: "Search YouTube videos and channels",
+    icon: YoutubeIcon,
+    show: true,
+  },
+  {
     id: "linkedin" as const,
     name: "LinkedIn",
     description: "Search LinkedIn posts and content powered by Exa",
@@ -20,13 +27,7 @@ export const searchGroups = [
     icon: RedditLogo,
     show: true,
   },
-  {
-    id: "youtube" as const,
-    name: "YouTube",
-    description: "Search YouTube videos and channels",
-    icon: YoutubeIcon,
-    show: true,
-  },
+  
 ] as const;
 
 export type SearchGroup = typeof searchGroups[number];

@@ -138,7 +138,7 @@ const SelectionContent = ({ selectedGroup, onGroupSelect, status, onExpandChange
   }, [isExpanded, onExpandChange, isMobile]);
 
   // Filter to only include LinkedIn, YouTube, and Reddit
-  const allowedGroups = ['linkedin', 'youtube', 'reddit'];
+  const allowedGroups = ['youtube','linkedin', 'reddit'];
 
   return (
     <motion.div
