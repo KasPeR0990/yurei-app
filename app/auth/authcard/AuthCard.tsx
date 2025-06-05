@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/utils/supabase/client";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function AuthCard() {
@@ -38,25 +37,29 @@ export default function AuthCard() {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 font-mono">
-      <Card className={`${theme === "dark" ? "bg-[#0A0A0A] border-[--border]" : "bg-[--card] border-[--border]"} md:w-[400px] font-mono`}>
-        <div className="absolute -top-6 -right-6 opacity-[0.03] rotate-45">
-          <Circle className="w-12 h-12 absolute" strokeWidth={1} />
-          <Circle className="w-12 h-12 absolute -translate-x-2 -translate-y-2" strokeWidth={1} />
-        </div>
+      <Card className="bg-background/95 backdrop-blur-sm dark:bg-neutral-900/95 md:w-[400px] font-mono border-0 shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl font-semibold text-center mb-2 flex items-center justify-center gap-2 font-mono">
             <span>Welcome to Yurei</span>
-            <img src="/yurei-ghost.svg" alt="Yurei Ghost" className="w-8 h-8" />
+            <img 
+              src="/yurei-ghost.svg" 
+              alt="Yurei Ghost" 
+              className="w-8 h-8 " 
+            />
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center mb-6">
-            <p className={`${theme === "dark" ? "text-[--muted-foreground]" : "text-[--muted-foreground]"} text-sm font-mono`}>
-              Continue with Google to search content ideas
+            <p className="text-muted-foreground text-sm font-mono">
+              Sign in with Google to get started
             </p>
             {error && <p className="text-red-400 text-sm mt-2 font-mono">{error}</p>}
           </div>
-          <Button onClick={handleGoogleSignIn} className="w-full border rounded-lg" >
+          <Button 
+            onClick={handleGoogleSignIn} 
+            className="w-full rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white font-medium transition-colors"
+            variant="default"
+          >
             Sign in with Google
           </Button>
         </CardContent>

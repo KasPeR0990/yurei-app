@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { memo, useCallback, useMemo, useState, useEffect, Suspense, useRef } from "react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { YoutubeIcon, PlayIcon, LucideIcon, Moon, Sun, ArrowRight, X, Copy, Github, Plus, ThumbsUp, MessageSquare, Share2 } from "lucide-react";
+import { YoutubeIcon, PlayIcon, LucideIcon, Moon, Sun, ArrowRight, X, Copy, Github, Plus, ThumbsUp, MessageSquare, Share2, LogOut, LogOutIcon } from "lucide-react";
 import { InstallPrompt } from "@/components/install-prompt";
 import { XLogo, RedditLogo, LinkedinLogo, UserCircle } from '@phosphor-icons/react';
 import FormComponent from "@/components/form-component";
@@ -33,6 +33,8 @@ import { BuyCoffee } from "@/components/buy-coffee"
 import { LinkedInEmbed } from 'react-social-media-embed';
 import { Coffee } from "lucide-react";
 import { RedditSearch } from "@/components/reddit-search";
+import { createClient } from "@/utils/supabase/client";
+import { User } from "@supabase/supabase-js";
 
 interface LinkedInResult {
   id: string;
@@ -455,6 +457,91 @@ const LinkedInCard: React.FC<{ post: LinkedInResult; index: number }> = ({ post,
 //     </div>
 //   </motion.div>
 // );
+const LogoutButton = () => {
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.auth.getUser();
+      
+     
+      setUser(data.user);
+    };
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    if(!showConfirm) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
+        setShowConfirm(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showConfirm]);
+
+  const handleLogout = async () => {
+    setShowConfirm(true);
+  };
+
+  const confirmLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.reload();
+  };
+
+  return (
+    <>
+      <button onClick={handleLogout} className="fixed bottom-6 left-6 z-50 bg-background/80 rounded-full p-2 shadow-lg border border-neutral-200 dark:border-neutral-800" title="Logout">
+        <LogOutIcon className="w-5 h-5" />
+      </button>
+      {showConfirm && (
+        <div ref={popupRef} className="fixed bottom-20 left-6 z-50">
+          <Card className="bg-[#1f1f1f] w-80 shadow-xl border-radius-sm border border-neutral-800">
+            <CardHeader>
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                
+                Log out?
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-3 mb-2">
+                {user?.user_metadata?.avatar_url ? (
+                  <img src={user.user_metadata.avatar_url} alt="avatar" className="w-8 h-8 rounded-full" />
+                ) : (
+                  <UserCircle className="w-8 h-8 text-neutral-400" />
+                )}
+                <div>
+                  <div className="font-mono text-sm font-semibold">{user?.email || 'Unknown user'}</div>
+                </div>
+              </div>
+              <div className="flex gap-2 mt-4">
+                <Button 
+                  className="rounded-md w-full bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 transition-colors"
+                  onClick={confirmLogout}
+                >
+                  Confirm
+                </Button>
+                <Button 
+                className="rounded-md p-4 w-full bg-neutral-800/50 hover:bg-neutral-700/50 text-neutral-300 hover:text-white transition-colors"
+                  onClick={() => setShowConfirm(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </>
+  );
+};
 
 const HomeContent = () => {
   const [query] = useQueryState('query', parseAsString.withDefault(''));
@@ -977,6 +1064,7 @@ const HomeContent = () => {
 
   return (
     <div className="flex flex-col !font-sans items-center min-h-screen bg-background text-foreground transition-all duration-500">
+      <LogoutButton />
       <Navbar />
 
       <div className={`w-full p-2 sm:p-4 ${status === 'ready' && messages.length === 0
