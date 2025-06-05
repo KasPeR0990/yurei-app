@@ -8,21 +8,26 @@ export default function ClientAuth({ initialUser, children }: { initialUser: any
 
   useEffect(() => {
     const supabase = createClient();
-
-    // Initial check
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
-
-    // Subscribe to auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
-    
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   if (user === undefined) return null; // Optionally, show a loading spinner
-  if (!user) return <AuthCard />;
-  return <>{children}</>;
+
+  return (
+    <>
+      {children}
+      {!user && (
+        <div className="fixed inset-0 z-[9999] pointer-events-none">
+          <div className="absolute inset-0 backdrop-blur-sm bg-black/10"></div>
+          <div className="flex items-center justify-center h-full pointer-events-auto relative z-10">
+            <AuthCard />
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
