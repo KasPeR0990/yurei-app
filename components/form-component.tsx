@@ -484,13 +484,12 @@ const FormComponent: React.FC<FormComponentProps> = ({
               >
                 {isProcessing ? (
                   <Button
-                    className="p-1.5 h-8 w-8 rounded-full"
+                    className="p-1.5 h-8 w-8 rounded-full bg-red-500 hover:bg-red-600 text-white"
                     onClick={(event) => {
                       event.preventDefault();
                       event.stopPropagation();
                       stop();
                     }}
-                    variant="destructive"
                   >
                     <StopIcon size={14} />
                   </Button>

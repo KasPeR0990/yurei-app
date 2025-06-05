@@ -2,46 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    /* Dark mode - Perplexity exact colors */
-    --background: 0 0% 3.9%;         /* #171717 */
-    --foreground: 0 0% 98%;       /* #FFFFFF */
-    --card: 0 0% 3.9%;             /* #262626 - sidebar */
-    --card-foreground: 0 0% 98%;  /* #FFFFFF */
-    --popover: 0 0% 3.9%;
-        --popover-foreground: 0 0% 98%;
-      --primary: 267 100% 70%;
-      --primary-foreground: 0 0% 98%;
-      --secondary: 0 0% 14.9%;
-      --secondary-foreground: 0 0% 98%;
-      --muted: 0 0% 14.9%;            /* #2D2D2D - hover */
-      --muted-foreground: 0 0% 63.9%;  /* #A1A1A1 */
-      --accent: 0 0% 14.9%;
-      --accent-foreground: 0 0% 98%;
-      --destructive: 0 62.8% 30.6%;
-      --destructive-foreground: 0 0% 98%;
-      --border: 0 0% 14.9%;
-      --input: 0 0% 14.9%;
-      --ring: 267 100% 70%;
-      --chart-1: 220 70% 50%;
-      --chart-2: 160 60% 45%;
-      --chart-3: 30 80% 55%;
-      --chart-4: 280 65% 60%;
-      --chart-5: 340 75% 55%;
-
-  
-  }
+body {
+  background-color: #171717;
 }
 
-@layer base {
-  * {
-    @apply transition-colors duration-200;
-  }
-  body {
-    @apply bg-background text-foreground;
-    @apply transition-colors duration-300;
-  }
+/* Smooth transitions */
+* {
+  @apply transition-colors duration-200;
 }
 
 /* Tweet container adjustments */
@@ -55,33 +22,12 @@
   display: none !important;
 }
 
-@layer base {
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-/* Custo
-}
-
-/* St
+/* Custom styling for react-tweet component */
 
 /* Dark mode specific adjustments */
 .tweet-wrapper[data-theme="dark"] [data-tweet-id] {
   background-color: transparent !important;
   color: #e5e5e5 !important;
-}
-
-
-/* 
-
-/* Custom styling for react-tweet component */
-
-/* Remove the white border from the reCAPTCHA container */
-div[style*="width: 304px"][style*="border"] {
-  border: none !important;
-  box-shadow: none !important;
-  background: transparent !important;
 }
 
 /* Even more aggressive: target all divs with a white border */
