@@ -11,12 +11,14 @@ const badgeVariants = cva(
         default:
           "border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "border border-[#171717] dark:border-[#171717] bg-secondary text-secondary-foreground hover:bg-secondary/80",
         green:
           "border-transparent bg-green-500/20 hover:bg-green-500/30 text-green-800 rounded-full",
         destructive:
           "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
         outline: "text-foreground",
+        // In the variants object, add:
+reddit: "border border-[#171717] bg-neutral-100 dark:bg-neutral-800 text-foreground rounded-full px-2.5 py-0.5 text-xs",
       },
     },
     defaultVariants: {

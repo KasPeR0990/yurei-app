@@ -15,7 +15,8 @@ import {
 import { youtube_v3 } from '@googleapis/youtube';
 import { createClient as createSupabaseServerClient } from '@/utils/supabase/server';
 import { ratelimit } from '@/utils/ratelimit';
-import util from 'util';
+
+
 
 // Custom provider for language models
 const Yurei = customProvider({
@@ -50,6 +51,7 @@ interface RedditResult {
   publishedDate?: string;
   highlights?: string[];
   postId: string;
+  community: string;
 }
 
 interface VideoDetails {
@@ -81,6 +83,7 @@ const extractDomain = (url: string): string => {
   return url.match(urlPattern)?.[1] || url;
 };
 
+// not used 
 const deduplicateByUrl = <T extends { url: string }>(items: T[]): T[] => {
   const seenUrls = new Set<string>();
   return items.filter((item) => {
@@ -212,7 +215,6 @@ export async function POST(req: Request) {
                     };
                        // Process and filter results
                        const processedResults = result.results.reduce<Array<LinkedInResult>>((acc, post) => {
-                        console.log("Raw post data from Exa AI:", util.inspect(post, { depth: null, colors: true }));
                         const postId = extractPostId(post.url);
                         if (postId) {
                             acc.push({
@@ -448,13 +450,20 @@ export async function POST(req: Request) {
                         publishedDate: post.publishedDate || undefined,
                         highlights: post.highlights || undefined,
                         postId: redditId,
+                        community: community || 'unknown'
                      
                       });
                     }
                     return acc;
                   }, []);
             
-                  return processedResults;
+                  return {
+                    query: query,
+                    results: processedResults,
+                    timeRange: startDate && endDate
+                    ? `from ${startDate} to ${endDate}`
+                    : 'anytime'
+                  }
                 } catch (error) {
                   console.error('Reddit search error:', error);
                   throw error;

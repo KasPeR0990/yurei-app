@@ -101,9 +101,12 @@ const ResultCard = ({ result }: { result: RedditResult }) => {
 };
 
 export const RedditSearch: React.FC<{ 
-  result: RedditSearchResponse; 
+  result?: RedditSearchResponse; 
   args: RedditSearchArgs;
 }> = ({ result, args }) => {
+  if (!result) {
+    return null; // or return a loading/error state
+  }
   const formattedTimeRange = {
     'day': 'past 24 hours',
     'week': 'past week',
@@ -127,9 +130,7 @@ export const RedditSearch: React.FC<{
               </div>
               <div className="flex items-center gap-2">
                 <Badge
-                  variant="secondary"
-                  className="rounded-full px-2.5 py-0.5 text-xs bg-neutral-100 dark:bg-neutral-800"
-                >
+                  variant="reddit">
                   {result.results.length} Results
                 </Badge>
               </div>
@@ -147,7 +148,7 @@ export const RedditSearch: React.FC<{
                 </Badge>
               </div>
               <div className="flex overflow-x-auto gap-2 no-scrollbar pb-1 snap-x snap-mandatory">
-                {result.results.map((post, index) => (
+                {result?.results?.map((post, index) => (
                   <motion.div
                     key={post.id}
                     initial={{ opacity: 0, x: 20 }}
