@@ -15,7 +15,7 @@ const defaultUrl = process.env.VERCEL_URL
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
   title: "Yurei",
-  description: "Search for content ideas across social media platforms",
+  description: "Search social media",
   icons: {
     icon: "/yurei-ghost.svg",
   },
@@ -44,7 +44,7 @@ export default async function CombinedLayout({
   const { data: { user } } = await supabase.auth.getUser();
 
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className={cn("min-h-screen bg-background text-foreground")}>
         <NuqsAdapter>
         <Providers>
