@@ -7,22 +7,22 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { memo, useCallback, useMemo, useState, useEffect, Suspense, useRef } from "react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { YoutubeIcon, PlayIcon, LucideIcon, Moon, Sun, ArrowRight, X, Copy, Github, Plus, ThumbsUp, MessageSquare, Share2, LogOut, LogOutIcon } from "lucide-react";
+import { YoutubeIcon, LucideIcon, ArrowRight, X, Copy, Github, Plus, ThumbsUp, MessageSquare, Share2, LogOutIcon } from "lucide-react";
 import { InstallPrompt } from "@/components/install-prompt";
 import { XLogo, RedditLogo, LinkedinLogo, UserCircle } from '@phosphor-icons/react';
 import FormComponent from "@/components/form-component";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { YoutubeSearch } from "@/components/search/youtube-search";
 import { useChat, UseChatOptions } from "@ai-sdk/react";
 import { Separator } from "@/components/ui/separator";
 import { SearchGroupId } from "@/utils/client-utils";
 import Marked, { ReactRenderer } from 'marked-react';
-import { TypeAnimation } from "react-type-animation";
+
 import { parseAsString, useQueryState } from 'nuqs';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AnimatePresence, motion } from 'framer-motion';
 import { ToolInvocation } from "ai";
-import { Tweet } from "react-tweet";
+
 import { cn } from "@/utils/utils";
 import { toast } from 'sonner';
 import Image from 'next/image';
@@ -30,63 +30,12 @@ import Link from "next/link";
 import React from "react";
 import Latex from 'react-latex-next';
 import { BuyCoffee } from "@/components/buy-coffee"
-import { LinkedInEmbed } from 'react-social-media-embed';
+
 import { Coffee } from "lucide-react";
-import { RedditSearch } from "@/components/reddit-search";
+import { RedditSearch } from "@/components/search/reddit-search";
 import { createClient } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
 
-interface LinkedInResult {
-  id: string;
-  url: string;
-  title?: string;
-  author?: string;
-  publishedDate?: string;
-  text?: string;
-  highlights?: string[];
-  image?: string;
-  postId: string;
-}
-interface RedditResult {
-  id: string;
-  url: string;
-  title: string;
-  text: string;
-  publishedDate?: string;
-  highlights?: string[];
-  postId: string;
-  community: string;
-}
-
-interface VideoDetails {
-  title?: string;
-  author_name?: string;
-  author_url?: string;
-  thumbnail_url?: string;
-  type?: string;
-  provider_name?: string;
-  provider_url?: string;
-}
-
-interface VideoResult {
-  videoId: string;
-  url: string;
-  details?: VideoDetails;
-  captions?: string;
-  timestamps?: string[];
-  views?: string;
-  likes?: string;
-  summary?: string;
-}
-
-interface YouTubeSearchResponse {
-  results: VideoResult[];
-}
-
-interface YouTubeCardProps {
-  video: VideoResult;
-  index: number;
-}
 
 const SearchLoadingState = ({
   icon: Icon,
@@ -161,302 +110,9 @@ const SearchLoadingState = ({
   );
 };
 
-const YouTubeCard: React.FC<YouTubeCardProps> = ({ video, index }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  if (!video) return null;
-
-  const formatTimestamp = (timestamp: string) => {
-    const match = timestamp.match(/(\d+:\d+(?::\d+)?) - (.+)/);
-    if (match) {
-      const [_, time, description] = match;
-      return { time, description };
-    }
-    return { time: "", description: timestamp };
-  };
-
-  const handleScrollableAreaEvents = (e: React.UIEvent) => {
-    e.stopPropagation();
-  };
-
-  return (
-    <div
-      className="w-[280px] flex-shrink-0 rounded-lg border dark:border-neutral-800 border-neutral-200 overflow-hidden bg-white dark:bg-neutral-900 shadow-sm hover:shadow-md transition-shadow duration-200"
-      onTouchStart={(e) => e.stopPropagation()}
-      onMouseDown={(e) => e.stopPropagation()}
-    >
-      <Link
-        href={video.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="relative aspect-video block bg-neutral-100 dark:bg-neutral-800 overflow-hidden rounded-lg"
-        aria-label={`Watch ${video.details?.title || "YouTube video"}`}
-      >
-        {video.details?.thumbnail_url ? (
-          <img
-            src={video.details.thumbnail_url}
-            alt=""
-            aria-hidden="true"
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center ">
-            <YoutubeIcon className="h-8 w-8 text-red-500 " />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-          <div className="absolute bottom-2 left-2 right-2 text-white text-xs font-medium line-clamp-2 ">
-            {video.details?.title || "YouTube Video"}
-          </div>
-          <div className="rounded-full bg-white/90 p-2">
-            <PlayIcon className="h-6 w-6 text-red-600" />
-          </div>
-        </div>
-      </Link>
-
-      <div className="p-3 flex flex-col gap-2">
-        <div>
-          <Link
-            href={video.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm font-medium line-clamp-2 hover:text-red-500 transition-colors dark:text-neutral-100"
-          >
-            {video.details?.title || "YouTube Video"}
-          </Link>
-
-          {video.details?.author_name && (
-            <Link
-              href={video.details.author_url || video.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 group mt-1.5 w-fit"
-              aria-label={`Channel: ${video.details.author_name}`}
-            >
-              <span className="text-xs text-neutral-600 dark:text-neutral-400 group-hover:text-red-500 transition-colors truncate">
-                {video.details.author_name}
-              </span>
-            </Link>
-          )}
-        </div>
-
-        {(video.timestamps && video.timestamps.length > 0 || video.captions) && (
-          <div className="mt-1">
-            <Accordion type="single" collapsible>
-              <AccordionItem value="details" className="border-none">
-                <AccordionTrigger className="py-1 hover:no-underline">
-                  <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 hover:text-red-500 dark:hover:text-red-400">
-                    {isExpanded ? "Hide details" : "Show details"}
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent>
-                  {video.timestamps && video.timestamps.length > 0 && (
-                    <div className="mt-2 space-y-1.5">
-                      <h4 className="text-xs font-semibold dark:text-neutral-300 text-neutral-700">Key Moments</h4>
-                      <ScrollArea className="h-[120px]">
-                        <div className="pr-4">
-                          {video.timestamps.map((timestamp, i) => {
-                            const { time, description } = formatTimestamp(timestamp);
-                            return (
-                              <Link
-                                key={i}
-                                href={`${video.url}&t=${time.split(':').reduce((acc, time, i, arr) => {
-                                  if (arr.length === 2) {
-                                    return i === 0 ? acc + parseInt(time) * 60 : acc + parseInt(time);
-                                  } else {
-                                    return i === 0 ? acc + parseInt(time) * 3600 :
-                                      i === 1 ? acc + parseInt(time) * 60 :
-                                      acc + parseInt(time);
-                                  }
-                                }, 0)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-start gap-2 py-1 px-1.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                              >
-                                <span className="text-xs font-medium text-red-500 whitespace-nowrap">{time}</span>
-                                <span className="text-xs text-neutral-700 dark:text-neutral-300 line-clamp-1">{description}</span>
-                              </Link>
-                            );
-                          })}
-                        </div>
-                      </ScrollArea>
-                    </div>
-                  )}
-
-                  {video.captions && (
-                    <div className="mt-3 space-y-1.5">
-                      <h4 className="text-xs font-semibold dark:text-neutral-300 text-neutral-700">Transcript</h4>
-                      <ScrollArea className="h-[120px]">
-                        <div className="text-xs dark:text-neutral-400 text-neutral-600 rounded bg-neutral-50 dark:bg-neutral-800 p-2">
-                          <p className="whitespace-pre-wrap">
-                            {video.captions}
-                          </p>
-                        </div>
-                      </ScrollArea>
-                    </div>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
 
-const LinkedInCard: React.FC<{ post: LinkedInResult; index: number }> = ({ post, index }) => {
-  const formattedDate = post.publishedDate ? new Date(post.publishedDate).toLocaleDateString('en-US') : 'Unknown date';
 
-  const authorName = post.author && !/^\d+(\sfollowers)?$/i.test(post.author) ? post.author : 'LinkedIn User';
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.1 }}
-      className="w-[280px] flex-shrink-0 relative rounded-md dark:bg-neutral-800 bg-white overflow-hidden shadow-md"
-      style={{ borderRadius: '7px' }}
-    >
-      <div className="p-4 flex items-start space-x-2">
-        <div className="relative w-8 h-8 rounded-full overflow-hidden bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center">
-          {post.author ? (
-            <img src="/placeholder-profile.png" alt={post.author} className="w-full h-full object-cover" onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-            }} />
-          ) : null}
-          <div className="absolute w-full h-full flex items-center justify-center">
-            <UserCircle size={32} weight="regular" />
-          </div>
-        </div>
-        <div className="flex flex-col text-sm">
-          <span className="font-semibold text-neutral-800 dark:text-neutral-100">{authorName}</span>
-          <div className="flex items-center space-x-1 text-xs text-neutral-500 dark:text-neutral-400">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width={16}
-              height={16}
-              viewBox="0 0 16 16"
-              style={{ display: 'block' }}
-            >
-              <path
-                d="M8 1a7 7 0 107 7 7 7 0 00-7-7zM3 8a5 5 0 011-3l.55.55A1.5 1.5 0 015 6.62v1.07a.75.75 0 00.22.53l.56.56a.75.75 0 00.53.22H7v.69a.75.75 0 00.22.53l.56.56a.75.75 0 01.22.53V13a5 5 0 01-5-5zm6.24 4.83l2-2.46a.75.75 0 00.09-.8l-.58-1.16A.76.76 0 0010 8H7v-.19a.51.51 0 01.28-.45l.38-.19a.74.74 0 01.68 0L9 7.5l.38-.7a1 1 0 00.12-.48v-.85a.78.78 0 01.21-.53l1.07-1.09a5 5 0 01-1.54 9z"
-                fill="white"
-              />
-            </svg>
-            <span>{formattedDate}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ... rest of the component remains the same ... */}
-
-      <div className="p-4">
-        <HoverCard>
-          <HoverCardTrigger asChild>
-            <Link
-              href={post.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block"
-            >
-              <p className="text-sm text-neutral-800 dark:text-neutral-100 mb-2 line-clamp-4">
-                {post.text || post.title || 'LinkedIn post'}
-              </p>
-            </Link>
-          </HoverCardTrigger>
-          <HoverCardContent className="overflow-hidden" style={{ border: '1px solid #171717' }}>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-3">
-              {post.text || post.title || 'LinkedIn post'}
-            </p>
-          </HoverCardContent>
-        </HoverCard>
-
-        {post.image && (
-          <div className="mt-3 rounded-md overflow-hidden">
-            <img src={post.image} alt="Post image" className="w-full h-auto" />
-          </div>
-        )}
-
-        {post.highlights && post.highlights.length > 0 && (
-          <div className="mt-3">
-            {post.highlights.map((highlight, i) => (
-              <span key={i} className="inline-block bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 rounded px-2 py-0.5 mr-1 mb-1 text-xs">
-                {highlight}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="mt-3 flex items-center justify-start space-x-4 text-neutral-600 dark:text-neutral-400 text-sm">
-          <button className="flex items-center space-x-1">
-            <ThumbsUp size={20} className="lucide lucide-thumbs-up" />
-            <span>Like</span>
-          </button>
-          <button className="flex items-center space-x-1">
-            <MessageSquare size={20} className="lucide lucide-message-square" />
-            <span>Comment</span>
-          </button>
-          <button className="flex items-center space-x-1">
-            <Share2 size={20} className="lucide lucide-share" />
-            <span>Share</span>
-          </button>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-
-// const RedditCard: React.FC<{ post: RedditResult; index: number }> = ({ post, index }) => (
-//   <motion.div
-//     initial={{ opacity: 0, y: 20 }}
-//     animate={{ opacity: 1, y: 0 }}
-//     transition={{ duration: 0.3, delay: index * 0.1 }}
-//     className="w-[280px] h-[200px] flex-shrink-0 relative rounded-xl dark:bg-neutral-800/50 overflow-hidden"
-//   >
-//     {/* Reddit community above content */}
-//     <div className="absolute top-4 left-4 z-0 flex flex-col items-start gap-0.5">
-//       {post.community ? (
-//         <span className="text-[12px] text-neutral-500 dark:text-neutral-400 font-geist-mono">
-//           r/{post.community}
-//         </span>
-//       ) : (
-//         <span className="text-[12px] text-neutral-500 dark:text-neutral-400 font-geist-mono">r/unknown</span>
-//       )}
-//     </div>
-
-//     <div className="p-4 pt-16 flex flex-col gap-2">
-//       <div className="space-y-2">
-//         <HoverCard>
-//           <HoverCardTrigger asChild>
-//             <Link
-//               href={post.url}
-//               target="_blank"
-//               rel="noopener noreferrer"
-//               className="text-base font-semibold line-clamp-2 hover:text-orange-500 transition-colors dark:text-neutral-100 font-geist-mono"
-//             >
-//               {post.title || "Reddit Post"}
-//             </Link>
-//           </HoverCardTrigger>
-//           <HoverCardContent className="overflow-hidden" style={{ border: '1px solid #171717' }}>
-//             <p className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-3">
-//               {post.text || post.title || 'Reddit post'}
-//             </p>
-//           </HoverCardContent>
-//         </HoverCard>
-//         {/* Breadtext under headline */}
-//         {post.text && post.text.trim() !== post.title.trim() && (
-//           <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-2 font-geist-mono">
-//             {post.text.length > 100 ? post.text.slice(0, 100) + '…' : post.text}
-//           </p>
-//         )}
-//       </div>
-//     </div>
-//   </motion.div>
-// );
 const LogoutButton = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -608,22 +264,6 @@ const HomeContent = () => {
     status,
   } = useChat(chatOptions);
 
-  // const ThemeToggle: React.FC = () => {
-  //   const { resolvedTheme, setTheme } = useTheme();
-
-  //   return (
-  //     <Button
-  //       variant="ghost"
-  //       size="icon"
-  //       onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-  //       className="bg-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800"
-  //     >
-  //       <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-  //       <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-  //       <span className="sr-only">Toggle theme</span>
-  //     </Button>
-  //   );
-  // };
 
   interface MarkdownRendererProps {
     content: string;
@@ -863,10 +503,6 @@ const HomeContent = () => {
     );
   };
 
-
-
-
-  
   const lastUserMessageIndex = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i--) {
       if (messages[i].role === 'user') {
@@ -1013,31 +649,6 @@ const HomeContent = () => {
     );
   };
 
-  const TypingAnimation = () => {
-    return (
-      <TypeAnimation
-        sequence={[
-          "Who is Kasper0990?",
-          1500,
-          "",
-          500,
-          "What is vibe-coding?",
-          1500,
-          "",
-          500,
-          "Latest news on AI",
-          1500,
-          "",
-          500
-        ]}
-        wrapper="span"
-        speed={50}
-        cursor={true}
-        repeat={Infinity}
-        className="text-neutral-500"
-      />
-    );
-  };
 
   const handleSearchSubmit = useCallback(
     (query: string, group: SearchGroupId) => {
@@ -1320,91 +931,7 @@ const ToolInvocationListView = memo(
             />;
           }
 
-          const PREVIEW_COUNT = 2;
-          const FullLinkedInList = memo(() => (
-            <div className="grid gap-4 p-4 sm:max-w-[500px]">
-              {result.map((post: LinkedInResult, idx: number) => (
-                <div
-                  key={post.id + '-' + idx}
-                  className="linkedin-post-container"
-                >
-                  <LinkedInCard post={post} index={idx} />
-                </div>
-              ))}
-            </div>
-          ));
-          FullLinkedInList.displayName = "FullLinkedInList";
-
-          return (
-            <Card className="w-full my-4 overflow-hidden shadow-none">
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-full dark:bg-neutral-900 flex items-center justify-center">
-                    <LinkedinLogo className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <CardTitle>Latest from LinkedIn</CardTitle>
-                    <p className="text-sm text-neutral-500 dark:text-neutral-400">{result.length} posts found</p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="relative">
-                <div className="px-4 pb-2 h-72">
-                  <div className="flex justify-center overflow-hidden">
-                    <div className="w-[calc(280px*3+1rem*2)] mx-auto">
-                      <div className="flex overflow-x-auto gap-4 p-3" style={{ scrollbarWidth: 'thin' }}>
-                        {result.slice(0, PREVIEW_COUNT).map((post: LinkedInResult, idx: number) => (
-                          <div
-                            key={post.postId}
-                            className="w-[280px] flex-none linkedin-post-container"
-                          >
-                            <LinkedInCard post={post} index={idx} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-black pointer-events-none" />
-                <div className="absolute bottom-0 inset-x-0 flex items-center justify-center pb-4 pt-20 bg-gradient-to-t from-white dark:from-black to-transparent">
-                  <div className="hidden sm:block">
-                    <Sheet>
-                      <SheetTrigger asChild>
-                        <Button variant="outline" className="gap-2 dark:bg-black rounded-full border-[#171717]">
-                          <LinkedinLogo className="h-4 w-4" />   
-                          Show all {result.length} posts
-                        </Button>
-                      </SheetTrigger>
-                      <SheetContent side="right" className="w-[400px] sm:w-[600px] overflow-y-auto !p-0 !z-[70]">
-                        <SheetHeader className="!mt-5 !font-sans">
-                          <SheetTitle className="text-center">All LinkedIn Posts</SheetTitle>
-                        </SheetHeader>
-                        <FullLinkedInList />
-                      </SheetContent>
-                    </Sheet>
-                  </div>
-                  <div className="block sm:hidden">
-                    <Drawer>
-                      <DrawerTrigger asChild>
-                        <Button variant="outline" className="gap-2 bg-white dark:bg-black">
-                          <LinkedinLogo className="h-4 w-4" />
-                          Show all {result.length} posts
-                        </Button>
-                      </DrawerTrigger>
-                      <DrawerContent className="max-h-[85vh] font-sans">
-                        <DrawerHeader>
-                          <DrawerTitle>All LinkedIn Posts</DrawerTitle>
-                        </DrawerHeader>
-                        <div className="overflow-y-auto">
-                          <FullLinkedInList />
-                        </div>
-                      </DrawerContent>
-                    </Drawer>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
+          
         }
 
         if (toolInvocation.toolName === "youtube_search") {
@@ -1415,50 +942,10 @@ const ToolInvocationListView = memo(
               color="red"
             />;
           }
+          return <YoutubeSearch result={result}/>
 
-          const youtubeResult = result as YouTubeSearchResponse;
-
-          return (
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="videos" className="border-0">
-                <AccordionTrigger
-                  className={cn(
-                    "w-full dark:bg-neutral-900 bg-white rounded-xl dark:border-neutral-800 border px-6 py-4 hover:no-underline transition-all",
-                    "[&[data-state=open]]:rounded-b-none",
-                    "[&[data-state=open]]:border-b-0"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-full dark:bg-neutral-800 bg-gray-100">
-                      <YoutubeIcon className="h-4 w-4 text-red-500" />
-                    </div>
-                    <div>
-                      <h2 className="dark:text-neutral-100 text-gray-900 font-medium text-left">YouTube Results</h2>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="secondary" className="dark:bg-neutral-800 bg-gray-100 dark:text-neutral-300 text-gray-600 rounded-full">
-                          {youtubeResult.results.length} videos
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="dark:bg-neutral-900 bg-white dark:border-neutral-800 border border-t-0 rounded-b-xl">
-                  <div className="flex justify-center overflow-hidden">
-                    <div className="w-[calc(280px*3+1rem*2)] mx-auto">
-                      <div className="flex overflow-x-auto gap-4 p-3" style={{ scrollbarWidth: 'thin' }}>
-                        {youtubeResult.results.map((video, index) => (
-                          <div key={video.videoId} className="youtube-video-container">
-                            <YouTubeCard key={video.videoId} video={video} index={index} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          );
         }
+       
         if (toolInvocation.toolName === 'reddit_search') {
           if (!result) {
               return <SearchLoadingState
@@ -1475,100 +962,6 @@ const ToolInvocationListView = memo(
   },
   [message]
 );
-    //       const FullRedditList = memo(({ mode = "preview" }: { mode?: "preview" | "full" }) => {
-    //         const postsToShow = mode === "preview" ? result.slice(0, PREVIEW_COUNT) : result;
-    //         return (
-    //           <div
-    //             className={
-    //               mode === "preview"
-    //                 ? "grid grid-cols-2 grid-rows-2 gap-4 p-4 max-w-[600px] mx-auto"
-    //                 : "flex flex-col gap-4 p-4 max-w-[600px] mx-auto"
-    //             }
-    //           >
-    //             {postsToShow.map((post: RedditResult, idx: number) => (
-    //             <div
-    //               key={post.id + '-' + idx}
-    //               className="reddit-post-container"
-    //             >
-    //               <RedditCard post={post} index={idx} />
-    //             </div>
-    //           ))}
-    //         </div>
-    //         );
-    //       });
-    //       FullRedditList.displayName = "FullRedditList";
-
-    //       return (
-    //         <Card className="w-full my-4 overflow-hidden shadow-none">
-    //           <CardHeader className="pb-2 flex flex-row items-center justify-between">
-    //             <div className="flex items-center gap-2">
-    //               <div className=" rounded-full  flex items-center justify-center">
-    //                 <Image
-    //                   src="/Reddit-Logomark-Color-Logo.wine.svg"
-    //                   alt="Reddit Logo"
-    //                   width={70}
-    //                   height={70}
-    //                   className="object-contain rounded-full bg-transparent"
-    //                   priority
-    //                 />
-    //               </div>
-    //               <div>
-    //                 <CardTitle>Latest from Reddit</CardTitle>
-    //                 <p className="text-sm text-neutral-500 dark:text-neutral-400">{result.length} posts found</p>
-    //               </div>
-    //             </div>
-    //           </CardHeader>
-    //           <CardContent className="relative">
-    //             <div className="px-4 pb-2 h-72">
-    //               <FullRedditList mode="preview" />
-    //             </div>
-    //             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-black pointer-events-none" />
-    //             <div className="absolute bottom-0 inset-x-0 flex items-center justify-center pb-4 pt-20 bg-gradient-to-t from-white dark:from-black to-transparent">
-    //               <div className="hidden sm:block">
-    //                 <Sheet>
-    //                   <SheetTrigger asChild>
-    //                     <Button variant="outline" className="gap-2 dark:bg-black rounded-full border-[#171717]">
-    //                       <RedditLogo className="h-4 w-4" />
-    //                       Show all {result.length} posts
-    //                     </Button>
-    //                   </SheetTrigger>
-    //                   <SheetContent side="right" className="w-[400px] sm:w-[600px] overflow-y-auto !p-0 !z-[70]">
-    //                     <SheetHeader className="!mt-5 !font-sans">
-    //                       <SheetTitle className="text-center">All Reddit Posts</SheetTitle>
-    //                     </SheetHeader>
-    //                     <FullRedditList mode="full" />
-    //                   </SheetContent>
-    //                 </Sheet>
-    //               </div>
-    //               <div className="block sm:hidden">
-    //                 <Drawer>
-    //                   <DrawerTrigger asChild>
-    //                     <Button variant="outline" className="gap-2 bg-white dark:bg-black">
-    //                       <RedditLogo className="h-4 w-4" />
-    //                       Show all {result.length} posts
-    //                     </Button>
-    //                   </DrawerTrigger>
-    //                   <DrawerContent className="max-h-[85vh] font-sans">
-    //                     <DrawerHeader>
-    //                       <DrawerTitle>All Reddit Posts</DrawerTitle>
-    //                     </DrawerHeader>
-    //                     <div className="overflow-y-auto">
-    //                       <FullRedditList mode="full" />
-    //                     </div>
-    //                   </DrawerContent>
-    //                 </Drawer>
-    //               </div>
-    //             </div>
-    //           </CardContent>
-    //         </Card>
-    //       );
-    //     }
-
-    //     return null;
-    //   },
-    //   []
-    // );
-
     return (
       <>
         {toolInvocations.map(

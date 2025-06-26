@@ -39,7 +39,7 @@ interface RedditSearchArgs {
   timeRange: string;
 }
 
-const ResultCard = ({ result }: { result: RedditResult }) => {
+const RedditCard = ({ result }: { result: RedditResult }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
  
 
@@ -156,7 +156,7 @@ export const RedditSearch: React.FC<{
                     transition={{ duration: 0.3, delay: index * 0.05 }}
                     className="snap-start"
                   >
-                    <ResultCard result={post} />
+                    <RedditCard result={post} />
                   </motion.div>
                 ))}
               </div>
