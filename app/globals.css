@@ -5,16 +5,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 
-
-
-
 .custom-badge-border {
   border: 1px solid #171717 !important;
   border-color: #171717 !important;
 }
-
-
-
 
 @layer base {
   :root {
@@ -72,11 +66,10 @@
   }
 }
 
-
-
-
-
-
+/* Enable smooth scrolling globally */
+html {
+  scroll-behavior: smooth;
+}
 
 @layer base {
   * {

@@ -44,10 +44,10 @@ const RedditCard = ({ result }: { result: RedditResult }) => {
  
 
   return (
-    <div className="w-[280px] shrink-0 bg-background rounded-lg border border-border/50 transition-all hover:shadow-xs">
+    <div className="w-[280px] shrink-0 bg-background rounded-xl border border-border/50 transition-all hover:shadow-xs">
       <div className="p-3">
         <div className="flex items-center gap-2 mb-2">
-          <div className="relative w-8 h-8 rounded-md bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center overflow-hidden">
+          <div className="relative w-8 h-8 rounded-xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center overflow-hidden">
             {!imageLoaded && (
               <RedditLogo weight="fill" className="h-4 w-4 text-orange-500" />
             )}
@@ -119,11 +119,11 @@ export const RedditSearch: React.FC<{
       <Accordion type="single" collapsible defaultValue="reddit_search" className="w-full">
         <AccordionItem value="reddit_search" className="border-none">
           <AccordionTrigger
-            className="py-3 px-4 bg-white dark:bg-neutral-900 rounded-lg hover:no-underline border border-neutral-200 dark:border-neutral-800 data-[state=open]:rounded-b-none"
+            className="py-3 px-4 bg-white dark:bg-neutral-900 rounded-xl hover:no-underline border border-neutral-200 dark:border-neutral-800 data-[state=open]:rounded-b-none"
           >
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-md bg-orange-50 dark:bg-orange-900/20">
+                <div className="p-1.5 rounded-xl bg-orange-50 dark:bg-orange-900/20">
                   <RedditLogo className="h-3.5 w-3.5 text-orange-500" />
                 </div>
                 <h2 className="font-medium text-left text-sm">Reddit Results</h2>
@@ -138,7 +138,7 @@ export const RedditSearch: React.FC<{
           </AccordionTrigger>
 
           <AccordionContent className="pt-0 mt-0 border-0 overflow-hidden">
-            <div className="py-3 px-4 bg-white dark:bg-neutral-900 rounded-b-lg border border-t-0 border-neutral-200 dark:border-neutral-800">
+            <div className="py-3 px-4 bg-white dark:bg-neutral-900 rounded-b-xl border border-t-0 border-neutral-200 dark:border-neutral-800">
               <div className="flex overflow-x-auto gap-1.5 mb-3 no-scrollbar pb-1">
                 <Badge
                   variant="secondary"

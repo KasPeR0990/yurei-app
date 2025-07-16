@@ -96,7 +96,7 @@ const YouTubeCard: React.FC<YouTubeCardProps> = ({ video, index }) => {
               {video.details?.title || "YouTube Video"}
             </div>
             <div className="rounded-full bg-white/90 p-2">
-              <PlayIcon className="h-6 w-6 text-red-600" />
+              <PlayIcon className="h-6 w-6 text-red-600 fill-red-600" />
             </div>
           </div>
         </Link>
