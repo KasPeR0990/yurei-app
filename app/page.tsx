@@ -1,28 +1,20 @@
-'use client';
+"use client"
 
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { track } from '@vercel/analytics';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { memo, useCallback, useMemo, useState, useEffect, Suspense, useRef } from "react";
+import { useCallback, useMemo, useState, useEffect, Suspense, useRef } from "react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { YoutubeIcon, LucideIcon, ArrowRight, X, Copy, Github, Plus, ThumbsUp, MessageSquare, Share2, LogOutIcon } from "lucide-react";
-import { InstallPrompt } from "@/components/install-prompt";
-import { XLogo, RedditLogo, LinkedinLogo, UserCircle } from '@phosphor-icons/react';
+
+import { ArrowRight, X, Copy, Github, Plus, LogOutIcon } from "lucide-react";
+import { XLogo, UserCircle } from '@phosphor-icons/react';
 import FormComponent from "@/components/form-component";
-import { YoutubeSearch } from "@/components/search/youtube-search";
+
 import { useChat, UseChatOptions } from "@ai-sdk/react";
 import { Separator } from "@/components/ui/separator";
 import { SearchGroupId } from "@/utils/client-utils";
 import Marked, { ReactRenderer } from 'marked-react';
-
 import { parseAsString, useQueryState } from 'nuqs';
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { AnimatePresence, motion } from 'framer-motion';
-import { ToolInvocation } from "ai";
-
 import { cn } from "@/utils/utils";
 import { toast } from 'sonner';
 import Image from 'next/image';
@@ -30,174 +22,12 @@ import Link from "next/link";
 import React from "react";
 import Latex from 'react-latex-next';
 import { BuyCoffee } from "@/components/buy-coffee"
-
 import { Coffee } from "lucide-react";
-import { RedditSearch } from "@/components/search/reddit-search";
 import { createClient } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
 
+import ToolInvocationListView from '@/components/tool-invocation';
 
-const SearchLoadingState = ({
-  icon: Icon,
-  text,
-  color
-}: {
-  icon: LucideIcon,
-  text: string,
-  color: "red" | "green" | "orange" | "violet" | "gray" | "blue"
-}) => {
-  const colorVariants = {
-    red: {
-      text: "text-red-500",
-      icon: "text-red-500"
-    },
-    green: {
-      text: "text-green-500",
-      icon: "text-green-500"
-    },
-    orange: {
-      text: "text-orange-500",
-      icon: "text-orange-500"
-    },
-    violet: {
-      text: "text-violet-500",
-      icon: "text-violet-500"
-    },
-    gray: {
-      text: "text-neutral-500",
-      icon: "text-neutral-500"
-    },
-    blue: {
-      text: "text-blue-500",
-      icon: "text-blue-500"
-    }
-  };
-
-  const variant = colorVariants[color];
-
-  return (
-    <Card className="relative w-full h-[100px] my-4 overflow-hidden shadow-none border-0">
-      <CardContent className="p-6">
-        <div className="relative flex justify-between">
-          <div className="flex gap-3">
-            <div className={cn(
-              "relative h-10 w-10 rounded-full flex items-center justify-center",
-              variant.text
-            )}>
-              <Icon className={cn("h-5 w-5", variant.icon)} />
-            </div>
-            <div className="space-y-2">
-              <p className="text-base font-medium">
-                {text}
-              </p>
-              <div className="flex gap-2">
-                {[...Array(3)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-1.5 rounded-full  dark:bg-neutral-700 animate-pulse"
-                    style={{
-                      width: `${Math.random() * 40 + 20}px`,
-                      animationDelay: `${i * 0.2}s`
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-
-
-
-const LogoutButton = () => {
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const popupRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const supabase = createClient();
-      const { data } = await supabase.auth.getUser();
-      
-     
-      setUser(data.user);
-    };
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
-    if(!showConfirm) return;
-    function handleClickOutside(event: MouseEvent) {
-      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
-        setShowConfirm(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showConfirm]);
-
-  const handleLogout = async () => {
-    setShowConfirm(true);
-  };
-
-  const confirmLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    window.location.reload();
-  };
-
-  return (
-    <>
-      <button onClick={handleLogout} className="fixed bottom-6 left-6 z-50 bg-background/80 rounded-full p-2 shadow-lg border border-neutral-200 dark:border-neutral-800" title="Logout">
-        <LogOutIcon className="w-5 h-5" />
-      </button>
-      {showConfirm && (
-        <div ref={popupRef} className="fixed bottom-20 left-6 z-50">
-          <Card className="bg-[#1f1f1f] w-80 shadow-xl border-radius-sm border border-neutral-800">
-            <CardHeader>
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                
-                Log out?
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3 mb-2">
-                {user?.user_metadata?.avatar_url ? (
-                  <img src={user.user_metadata.avatar_url} alt="avatar" className="w-8 h-8 rounded-full" />
-                ) : (
-                  <UserCircle className="w-8 h-8 text-neutral-400" />
-                )}
-                <div>
-                  <div className="font-mono text-sm font-semibold">{user?.email || 'Unknown user'}</div>
-                </div>
-              </div>
-              <div className="flex gap-2 mt-4">
-                <Button 
-                  className="rounded-md w-full bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 transition-colors"
-                  onClick={confirmLogout}
-                >
-                  Confirm
-                </Button>
-                <Button 
-                className="rounded-md p-4 w-full bg-neutral-800/50 hover:bg-neutral-700/50 text-neutral-300 hover:text-white transition-colors"
-                  onClick={() => setShowConfirm(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-    </>
-  );
-};
 
 const HomeContent = () => {
   const [query] = useQueryState('query', parseAsString.withDefault(''));
@@ -522,6 +352,7 @@ const HomeContent = () => {
     }
   }, [status]);
 
+// fucking double scroll, gotta fix this. 
   useEffect(() => {
     let scrollTimeout: NodeJS.Timeout;
 
@@ -580,7 +411,67 @@ const HomeContent = () => {
     }
   }, [input, messages, editingMessageIndex, setMessages, setInput, reload]);
 
-
+  const LogoutButton: React.FC = () => {
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [user, setUser] = useState<User | null>(null);
+    const popupRef = useRef<HTMLDivElement>(null);
+  
+    useEffect(() => {
+      const fetchUser = async () => {
+        const supabase = createClient();
+        const { data } = await supabase.auth.getUser();
+        setUser(data.user);
+      };
+      fetchUser();
+    }, []);
+  
+    useEffect(() => {
+      if (!showConfirm) return;
+      function handleClickOutside(event: MouseEvent) {
+        if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
+          setShowConfirm(false);
+        }
+      }
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showConfirm]);
+  
+    const confirmLogout = async () => {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      window.location.reload();
+    };
+  
+    return (
+      <>
+        <button onClick={() => setShowConfirm(true)} className="fixed bottom-6 left-6 z-50 bg-background/80 rounded-full p-2 shadow-lg border border-neutral-200 dark:border-neutral-800" title="Logout">
+          <LogOutIcon className="w-5 h-5" />
+        </button>
+        {showConfirm && (
+          <div ref={popupRef} className="fixed bottom-20 left-6 z-50">
+            <div className="bg-[#171717] w-80 shadow-xl border border-neutral-800 rounded-lg">
+              <div className="p-4 border-b border-neutral-800 font-semibold">Log out?</div>
+              <div className="p-4">
+                <div className="flex items-center gap-3 mb-4">
+                  {user?.user_metadata?.avatar_url ? (
+                    <img src={user.user_metadata.avatar_url} alt="avatar" className="w-8 h-8 rounded-full" />
+                  ) : (
+                    <UserCircle className="w-8 h-8 text-neutral-400" />
+                  )}
+                  <span className="font-mono text-sm font-semibold">{user?.email || 'Unknown user'}</span>
+                </div>
+                <div className="flex gap-2">
+                  <Button className="w-full bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300" onClick={confirmLogout}>Confirm</Button>
+                  <Button className="w-full bg-neutral-800/50 hover:bg-neutral-700/50 text-neutral-300 hover:text-white" onClick={() => setShowConfirm(false)}>Cancel</Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
+  
 
   interface NavbarProps { }
 
@@ -621,12 +512,13 @@ const HomeContent = () => {
             rel="noopener noreferrer"
             className="flex items-center space-x-1.5 text-sm font-medium px-3 py-1.5 rounded-xl bg-neutral-1000 hover:bg-neutral-700 text-neutral-100 transition-colors"
             aria-label="Buy Me a Coffee"
+            onClick={() => {track('buy_me_a_coffee')}}
           >
             <Coffee className="h-4 w-4" />
             <span>Buy me a coffee</span>
           </a>
           <a
-            href="https://github.com/Kasper0990"
+            href="https://github.com/KasPeR0990/yurei-app"
             target="_blank"
             rel="noopener noreferrer"
             className="text-foreground/50 hover:text-foreground/80 transition-colors"
@@ -910,77 +802,7 @@ const LoadingFallback = () => (
   </div>
 );
 
-// Buy me a coffe card
-const ToolInvocationListView = memo(
-  ({ toolInvocations, message }: { toolInvocations: ToolInvocation[]; message: any }) => {
-    const stableKeys = useMemo(() => {
-      return toolInvocations.map(() => Math.random().toString(36).substring(2, 15));
-    }, [toolInvocations.length]); // Only recreate if the number of invocations changes
-    
-    const renderToolInvocation = useCallback(
-      (toolInvocation: ToolInvocation, index: number) => {
-        const args = JSON.parse(JSON.stringify(toolInvocation.args));
-        const result = "result" in toolInvocation ? JSON.parse(JSON.stringify(toolInvocation.result)) : null;
 
-        if (toolInvocation.toolName === "linkedin_search") {
-          if (!result) {
-            return <SearchLoadingState
-              icon={LinkedinLogo}
-              text="Searching LinkedIn for latest posts..."
-              color="blue"
-            />;
-          }
-
-          
-        }
-
-        if (toolInvocation.toolName === "youtube_search") {
-          if (!result) {
-            return <SearchLoadingState
-              icon={YoutubeIcon}
-              text="Loading YouTube results..."
-              color="red"
-            />;
-          }
-          return <YoutubeSearch result={result}/>
-
-        }
-       
-        if (toolInvocation.toolName === 'reddit_search') {
-          if (!result) {
-              return <SearchLoadingState
-                  icon={RedditLogo}
-                  text="Searching Reddit..."
-                  color="orange"
-              />;
-          }
-          
-          return <RedditSearch result={result} args={args} />;
-      }
-
-      return null;
-  },
-  [message]
-);
-    return (
-      <>
-        {toolInvocations.map(
-          (toolInvocation: ToolInvocation, toolIndex: number) => (
-            <div key={stableKeys[toolIndex]}>
-              {renderToolInvocation(toolInvocation, toolIndex)}
-            </div>
-          )
-        )}
-      </>
-    );
-  },
-  (prevProps, nextProps) => {
-    return prevProps.toolInvocations === nextProps.toolInvocations &&
-      prevProps.message === nextProps.message;
-  }
-);
-
-ToolInvocationListView.displayName = 'ToolInvocationListView';
 
 const Home = () => {
   return (
@@ -1014,7 +836,6 @@ const Home = () => {
       `}</style>
       <Suspense fallback={<LoadingFallback />}>
         <HomeContent />
-        <InstallPrompt />
       </Suspense>
     </>
   );

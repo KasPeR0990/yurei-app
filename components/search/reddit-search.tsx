@@ -1,6 +1,4 @@
 // components/reddit-search.tsx
-'use client';
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, ArrowUpRight } from 'lucide-react';
@@ -21,10 +19,6 @@ interface RedditResult {
   text: string;
   publishedDate?: string;
   highlights?: string[];
-  highlightScores?: number[];
-  postId: string;
-  community: string;
-  score?: number;
 }
 
 interface RedditSearchResponse {
@@ -44,7 +38,7 @@ const RedditCard = ({ result }: { result: RedditResult }) => {
  
 
   return (
-    <div className="w-[280px] shrink-0 bg-background rounded-xl border border-border/50 transition-all hover:shadow-xs">
+    <div className="w-[280px] shrink-0 bg-neutral-[#151515] rounded-xl border border-border/50 transition-all hover:shadow-xs">
       <div className="p-3">
         <div className="flex items-center gap-2 mb-2">
           <div className="relative w-8 h-8 rounded-xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center overflow-hidden">

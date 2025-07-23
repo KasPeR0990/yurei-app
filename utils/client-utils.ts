@@ -1,9 +1,9 @@
 'use client';
 
 import { YoutubeIcon } from "lucide-react";
-import { LinkedinLogo, RedditLogo } from '@phosphor-icons/react';
-
-export type SearchGroupId = "linkedin" | "reddit" | "youtube";
+import { RedditLogo } from '@phosphor-icons/react';
+import YCombinatorIcon from "@/components/icons/YCombinatorIcon";
+export type SearchGroupId = "hackernews" | "reddit" | "youtube";
 
 export const searchGroups = [
   {
@@ -14,10 +14,10 @@ export const searchGroups = [
     show: true,
   },
   {
-    id: "linkedin" as const,
-    name: "LinkedIn",
-    description: "Search LinkedIn posts and content powered by Exa",
-    icon: LinkedinLogo,
+    id: "hackernews" as const,
+    name: "HackerNews",
+    description: "Search HackerNews powered by Exa",
+    icon: YCombinatorIcon,
     show: true,
   },
   {

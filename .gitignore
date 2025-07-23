@@ -44,7 +44,4 @@ yarn-error.log*
 next-env.d.ts
 
 
-# windsurf rules
-.windsurfrules
-
-/todo
+TODO

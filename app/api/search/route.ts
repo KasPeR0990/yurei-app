@@ -1,6 +1,6 @@
 import { xai } from '@ai-sdk/xai';
 import Exa from 'exa-js';
-import { z } from 'zod';
+import { string, z } from 'zod';
 import { getGroupConfig } from '@/app/actions/actions';
 import {
   convertToCoreMessages,
@@ -25,23 +25,31 @@ const Yurei = customProvider({
   },
 });
 
+if (!process.env.EXA_API_KEY) {
+  throw new Error("Missing EXA_API_KEY environment variable or out of credits!.");
+}
+
+if (!process.env.YOUTUBE_API_KEY) {
+  throw new Error("Missing YOUTUBE_API_KEY environment variable.");
+}
+
 // Set maxDuration to comply with Vercel hobby plan limits (60 seconds)
 export const maxDuration = 60;
 
 // Interfaces for search results
-interface LinkedInResult {
+interface HackerNewsResult {
   id: string;
   url: string;
-  title?: string;
-  author?: string;
-  publishedDate?: string;
+  title: string;
   text?: string;
-  highlights?: string[];
-  highlightScores?: number[];
-  highlightScore?: number;
-  image?: string;
-  postId: string; // Fortfarande bra att ha
+  publishedDate: string;
+  descendants: number;
+  score: number;
+  comments: number[];
+  author: string;
+  highlights: string[];      
 }
+
 
 interface RedditResult {
   id: string;
@@ -50,8 +58,6 @@ interface RedditResult {
   text?: string;
   publishedDate?: string;
   highlights?: string[];
-  postId: string;
-  community: string;
 }
 
 interface VideoDetails {
@@ -75,7 +81,7 @@ interface VideoResult {
   summary?: string;
 }
 
-const MIN_HIGHLIGHT_SCORE = 0.25;
+
 
 // Helper functions
 const extractDomain = (url: string): string => {
@@ -106,21 +112,19 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
     }
 
-
-    // //rate limit by user id 
-    // const usedID = user.id;
-    // const { success, reset, remaining } = await ratelimit.limit(usedID);
-    // if (!success) {
-    //   return new Response(JSON.stringify({ error: '429: Rate limit exceeded' }), { status: 429 });
-    // }
+    // rate limit by user id
+    const usedID = user.id;
+    const { success, reset, remaining } = await ratelimit.limit(usedID);
+    if (!success) {
+      return new Response(JSON.stringify({ error: '429: Rate limit exceeded' }), { status: 429 });
+    }
 
     const { messages, group } = await req.json();
     const { tools: activeTools, toolInstructions, responseGuidelines } = await getGroupConfig(group);
-    
     console.log("Group: ", group);
 
     return createDataStreamResponse({
-      execute: async (dataStream) => {
+      execute: async dataStream => {
         const toolResult = streamText({
           model: Yurei.languageModel('yurei-default'),
           messages: convertToCoreMessages(messages),
@@ -158,86 +162,90 @@ export async function POST(req: Request) {
                 }
               },
             }),
-            linkedin_search: tool({
-              description: 'Search LinkedIn posts.',
+            hackernews_search: tool({
+              description: 'Search HackerNews posts.',
               parameters: z.object({
-                  query: z.string().describe("The search query, use /in/username for searching a specific user / their posts."),
-                  startDate: z.string().optional().describe('The start date for the search in YYYY-MM-DD format'),
-                  endDate: z.string().optional().describe('The end date for the search in YYYY-MM-DD format'),
-                  minHighlightScore: z.number().optional().describe('The minimum highlight score for posts'),
+                query: z.string().describe('The search query, find similar things to this'),
+                startDate: z.string().optional().describe('The start date in YYYY-MM-DD format'),
+                endDate: z.string().optional().describe('The end date in YYYY-MM-DD format'),
               }),
-              execute: async ({
-                  query,
-                  startDate,
-                  endDate,
-                  minHighlightScore,
+             execute: async ({
+                query,
+                startDate,
+                endDate,
               }: {
-                  query: string;
-                  startDate?: string;
-                  endDate?: string;
-                  minHighlightScore?: number; 
+                query: string;
+                startDate?: string;
+                endDate?: string;
               }) => {
-                  try {
-                    const exa = new Exa(process.env.EXA_API_KEY as string)                    
-                    
-                      const result = await exa.searchAndContents(query, {
-                          type: 'keyword',
-                          numResults: 20,
-                          text: true,
-                          highlights: true,
-                          includeDomains: ['linkedin.com'],
-                          startPublishedDate: startDate,
-                          endPublishedDate: endDate,
-                          highlightScore: true,
-                         
-                        });            
-                      // Extract post ID from URL
-                      const extractPostId = (url: string): string | null => {
-                        const regex = /linkedin\.com\/(?:feed\/update\/urn:li:activity|embed\/feed\/update\/urn:li:ugcPost):(\d{6,})|linkedin\.com\/posts\/[^\/]+-activity-(\d{6,})/;
-                        const match = url.match(regex);
-                        return match ? (match[1] || match[2]) : null;
+                try {
+                  const exa = new Exa(process.env.EXA_API_KEY as string);
+
+                  const result = await exa.searchAndContents(query, {
+                    type: 'auto', // Use auto search for better results
+                    numResults: 10,
+                    text: true,
+                    highlights: true,
+                    includeDomains: ['news.ycombinator.com'],
+                    sortBy: 'date', // Sort by date to get recent results
+                    sortOrder: 'desc',
+                  });
+                  // Helper: Extract HN post ID from URL
+                  const extractHackerNewsID = (url: string): string | null => {
+                    const match = url.match(/news\.ycombinator\.com\/item\?id=(\d+)/);
+                    return match ? match[1] : null;
+                  };
+
+                  // Step 1: Build a map of highlights by post ID from Exa results
+                  const highlightsById = Object.fromEntries(
+                    result.results
+                      .map(post => {
+                        const id = extractHackerNewsID(post.url);
+                        return id ? [id, post.highlights || []] : null;
+                      })
+                      .filter(Boolean) as [string, string[]][]
+                  );
+
+                  // Step 2: Deduplicate posts by ID
+                  const postsWithIds = result.results
+                    .map(post => {
+                      const id = extractHackerNewsID(post.url);
+                      return id ? { id, url: post.url } : null;
+                    })
+                    .filter(Boolean) as { id: string; url: string }[];
+                  const uniquePostsById = Array.from(
+                    new Map(postsWithIds.map(post => [post.id, post])).values()
+                  );
+
+                  // Step 3: Fetch HN details and merge with highlights
+                  const hnDetails = await Promise.all(
+                    uniquePostsById.map(async ({ id, url }) => {
+                      const details = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(res => res.json());
+                      return {
+                        id,
+                        url,
+                        title: details.title || '',
+                        text: details.text || '',
+                        descendants: details.descendants || 0,
+                        score: details.score || 0,
+                        comments: details.kids || [],
+                        author: details.by || '',
+                        publishedDate: details.time ? new Date(details.time * 1000).toISOString() : '',
+                        highlights: highlightsById[id] || [],
                       };
-                      
+                    })
+                  );
 
-                      const filterScore = (results: LinkedInResult[], minScore?: number) => {
-                        if (minScore === undefined) {
-                            return results;
-                        }
-                        return results.filter(post => {
-                            let score: number | undefined = undefined;
-                            if (post.highlightScores?.length) {
-                                score = Math.max(...post.highlightScores);
-                            } else if (post.highlightScore !== undefined) {
-                                score = post.highlightScore;
-                            }
-                            return score !== undefined && score >= minScore;
-                        });
-                    };
-                       // Process and filter results
-                       const processedResults = result.results.reduce<Array<LinkedInResult>>((acc, post) => {
-                        const postId = extractPostId(post.url);
-                        if (postId) {
-                            acc.push({
-                                ...post, // Sprider alla egenskaper från det ursprungliga post-objektet
-                                postId,
-                                title: post.title || '',
-                                author: post.author || 'LinkedIn User',
-                                highlightScore: (post as any).highlightScore,
-                                highlightScores: post.highlightScores,
-                            } as LinkedInResult);
-                        }
-                        return acc;
-                    }, []);
-
-                    const filteredResults = filterScore(processedResults, MIN_HIGHLIGHT_SCORE);
-                    return filteredResults;
-
+                  // Step 4: Return results in the expected format
+                  return {
+                    results: hnDetails.filter(Boolean),
+                  };
                 } catch (error) {
-                    console.error('LinkedIn search error:', error);
-                    throw error;
+                  console.error('HackerNews search error:', error);
+                  return { results: [], error: 'Failed to fetch Hacker News results. Please try again later.' };
                 }
-            },
-        }),
+              },
+            }),
             youtube_search: tool({
               description: 'Search YouTube videos using YouTube Data API v3 and get detailed video information.',
               parameters: z.object({
@@ -245,9 +253,13 @@ export async function POST(req: Request) {
               }),
               execute: async ({ query, }: { query: string; }) => {
                 try {
+
+                  
+
                   // Initialize YouTube API client
                   const youtube = new youtube_v3.Youtube({
                     auth: process.env.YOUTUBE_API_KEY,
+
                   });                 
 
                   // Search for videos matching the query
@@ -379,7 +391,7 @@ export async function POST(req: Request) {
                   };
                 } catch (error) {
                   console.error('YouTube search error:', error);
-                  throw error;
+                  return { results: [], error: 'Failed to fetch YouTube results. Please try again later.' };
                 }
               },
             }),
@@ -449,8 +461,6 @@ export async function POST(req: Request) {
                         text: post.text || post.title || '',
                         publishedDate: post.publishedDate || undefined,
                         highlights: post.highlights || undefined,
-                        postId: redditId,
-                        community: community || 'unknown'
                      
                       });
                     }

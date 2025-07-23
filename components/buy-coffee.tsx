@@ -45,8 +45,8 @@ export const BuyCoffee = ({ setShowBuyCoffee }: { setShowBuyCoffee: (show: boole
     
     {/* Card Content */}
     <CardContent className="flex flex-col items-center gap-4 pb-4">
-      <p className="text-sm text-neutral-400 max-w-xs">
-        Hey, kasper here! thanks for testing out Yurei, but it's only in beta mode right now!  
+      <p className="text-sm text-neutral-400 max-w-xs text-center">
+          please donate money for api credits to keep this running. 
       </p>
       
       {/* Actions Section */}
@@ -68,7 +68,7 @@ export const BuyCoffee = ({ setShowBuyCoffee }: { setShowBuyCoffee: (show: boole
             <Link href="https://x.com/kasper0990">
               <XLogo className="w-4 h-4 text-neutral-400 hover:text-white transition-colors" />
             </Link>
-            <Link href="https://github.com/kasper0990">
+            <Link href="https://github.com/kasper0990/yurei-app">
               <Github className="w-4 h-4 text-neutral-400 hover:text-white transition-colors" />
             </Link>
           </div>
