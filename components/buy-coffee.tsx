@@ -39,7 +39,7 @@ export const BuyCoffee = ({ setShowBuyCoffee }: { setShowBuyCoffee: (show: boole
 </div>
       </div>
       <CardTitle className="text-base font-semibold text-neutral-100 tracking-tight">
-        Monthly limit reached
+        monthly limit reached!
       </CardTitle>
     </CardHeader>
     
@@ -63,7 +63,7 @@ export const BuyCoffee = ({ setShowBuyCoffee }: { setShowBuyCoffee: (show: boole
         
         {/* Social Links */}
         <div className="flex flex-col items-center gap-2">
-          <span className="text-xs text-neutral-400">Stay in the loop</span>
+          <span className="text-xs text-neutral-400">stay in the loop</span>
           <div className="flex gap-3">
             <Link href="https://x.com/kasper0990">
               <XLogo className="w-4 h-4 text-neutral-400 hover:text-white transition-colors" />

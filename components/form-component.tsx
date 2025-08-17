@@ -56,7 +56,6 @@ interface SwitchNotificationProps {
 
 // **Switch Notification Component**
 const SwitchNotification: React.FC<SwitchNotificationProps> = ({
-  icon,
   title,
   description,
   isVisible,
@@ -126,7 +125,7 @@ interface SelectionContentProps {
 }
 
 const SelectionContent = ({ selectedGroup, onGroupSelect, status, onExpandChange }: SelectionContentProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false)
   const isProcessing = status === 'submitted' || status === 'streaming';
   const { width } = useWindowSize();
   const isMobile = width ? width < 768 : false;
